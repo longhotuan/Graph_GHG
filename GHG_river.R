@@ -1139,6 +1139,57 @@ ggsave("Per_river_Flux_BB.tiff", river_flux_land_3 %>% ggplot() +
        units = 'cm', height = 20, width = 30, dpi = 300
 )
 
+# bar chart showing percentage of the concentration
+
+
+river_conc_land <- cbind(river_flux[,5], river_flux[,14:15], river_flux[,36:38])
+river_conc_land <- river_conc_land %>% gather(key = "DG", value = "Concentration", 
+                                              -River, -`Left Bank`,-`Right Bank`)
+river_conc_land$DG <- as.factor(river_conc_land$DG)
+river_conc_land$DG <- relevel(river_conc_land$DG,"Dissolved CO2")
+river_conc_land$DG <- factor(river_conc_land$DG, 
+                                 labels = c(expression("Dissolved CO"["2"]), expression("Dissolved CH"["4"]), 
+                                            expression("Dissolved N"["2"]*"O")))
+
+river_conc_land_2 <- river_conc_land[,-1] %>% gather(key = "Bank", value = "Land use", - DG, - Concentration)
+river_conc_land_2$Bank <- as.factor(river_conc_land_2$Bank)
+
+
+old_lu <- as.character(levels(as.factor(river_conc_land_2$`Land use`)))
+new_lu <- c("Agriculture", "Construction", "Industry", "Nature", "Industry", "Agriculture", "Urban",
+            "Nature", "Road", "Urban")
+for (i in 1:nrow(river_conc_land_2)){
+    for (j in 1:length(new_lu)){
+        river_conc_land_2$`Land use`[i] <- str_replace_all(river_conc_land_2$`Land use`[i], old_lu[j], new_lu[j])
+    }
+}
+river_conc_land_2$`Land use` <- as.factor(river_conc_land_2$`Land use`)
+
+river_conc_land_3 <- river_conc_land_2 %>% group_by(DG, Bank, `Land use`) %>% 
+    summarise(Concentration2 = sum(Concentration)) %>% 
+    mutate(Percentage = Concentration2*100/sum(Concentration2))
+
+
+ggsave("Per_river_Conc_BB.tiff", river_conc_land_3 %>% ggplot() +
+           geom_bar(aes(y=Percentage, x=DG, fill = `Land use`), stat = 'identity')+
+           theme_bw() +
+           # xlab("Year") +
+           ylab("Percentage of the GHG concentration (%)") +
+           facet_grid(.~Bank) +
+           scale_fill_brewer(palette = "Paired") +
+           scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]~"O")))+
+           theme(text=element_text(size=14),
+                 strip.text.x = element_text(size=14),
+                 axis.text.x = element_text(size = 14),
+                 axis.ticks.x = element_blank(),
+                 axis.title.x = element_blank(),
+                 legend.position="bottom",
+                 legend.title = element_text(size=14),
+                 legend.text = element_text(size = 12),
+                 legend.spacing.x = unit(0.5, 'cm')),
+       units = 'cm', height = 20, width = 30, dpi = 300
+)
+
 #### !!! Area plot from source to Mouth ####
 
 river_SM <- read_csv("River.csv")
