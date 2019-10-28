@@ -354,34 +354,57 @@ ggsave("Boxplot_river_DG_cor.tiff", river2 %>% gather(key = "Dissolved_gases", v
 
 #### !!! GWP per river ####
 
-river3 <- river2 %>% gather(key = "Dissolved_gases", value = "Concentration", - Time, - Location, -River)
+river_flux_GWP <- read_csv("River.csv")
+
+river_flux_GWP$Date <- as.factor(river_flux_GWP$Date)
+river_flux_GWP$Location <- as.factor(river_flux_GWP$Location)
+river_flux_GWP$River <- as.factor(river_flux_GWP$River)
+river_flux_GWP$LB <- as.factor(river_flux_GWP$LB)
+river_flux_GWP$RB <- as.factor(river_flux_GWP$RB)
+river_flux_GWP$Shading <- as.factor(river_flux_GWP$Shading)
+river_flux_GWP$Erosion <- as.factor(river_flux_GWP$Erosion)
+river_flux_GWP$Flow_variation <- as.factor(river_flux_GWP$Flow_variation)
+
+# change the colnames
+
+colnames(river_flux_GWP)[6:41] <- c("Water temperature", "pH", "DO", "EC", "TDS", "Salinity", "Turbility", "Chlorophyll", "Left Bank", 
+                                "Right Bank", "Shading", "Erosion", "Flow variability", "Average depth", "Average velocity",
+                                "Pool Class", "BOD", "COD", "TN" ,"NH4", "NO2", "NO3", "TP", "PO4", "Air temperature", "Wind velocity",
+                                "Rain", "Solar radiation", "Latitude", "Longitude", "Dissolved N2O", "Dissolved CH4", "Dissolved CO2",
+                                "Flux CO2", "Flux CH4", "Flux N2O")
+
+river_flux_GWP2 <- river_flux_GWP %>% select(c(3:5,39:41))
 
 
-river_GWP_CO2 <- river3 %>% filter(Dissolved_gases == "Dissolved CO2") %>% select(Concentration)*1
-river_GWP_CH4 <- river3 %>% filter(Dissolved_gases == "Dissolved CH4") %>% select(Concentration)*28
-river_GWP_N2O <- river3 %>% filter(Dissolved_gases == "Dissolved N2O") %>% select(Concentration)*265
-river_GWP <- bind_rows(river_GWP_N2O, river_GWP_CH4, river_GWP_CO2)
+river_flux_GWP3 <- river_flux_GWP2 %>% gather(key = "Flux_gases", value = "Concentration", - Time, - Location, -River)
 
-river3$GWP <- as.numeric(unlist(river_GWP))
-river3$Dissolved_gases <- as.factor(river3$Dissolved_gases)
 
-river3$Dissolved_gases <- relevel(river3$Dissolved_gases,"Dissolved CO2")
-river3$Dissolved_gases <- factor(river3$Dissolved_gases, 
-                                 labels = c(expression("Dissolved CO"["2"]), expression("Dissolved CH"["4"]), expression("Dissolved N"["2"]*"O")))
+river_GWP_CO2 <- river_flux_GWP3 %>% filter(Flux_gases == "Flux CO2") %>% select(Concentration)*1
+river_GWP_CH4 <- river_flux_GWP3 %>% filter(Flux_gases == "Flux CH4") %>% select(Concentration)*28
+river_GWP_N2O <- river_flux_GWP3 %>% filter(Flux_gases == "Flux N2O") %>% select(Concentration)*265
+river_GWP <- bind_rows(river_GWP_CO2, river_GWP_CH4, river_GWP_N2O)
 
-river3 %>% ggplot() +
+river_flux_GWP3$GWP <- as.numeric(unlist(river_GWP))
+river_flux_GWP3$Flux_gases <- as.factor(river_flux_GWP3$Flux_gases)
+
+river_flux_GWP3$Flux_gases <- relevel(river_flux_GWP3$Flux_gases,"Flux CO2")
+river_flux_GWP3$Flux_gases <- factor(river_flux_GWP3$Flux_gases, 
+                                 labels = c(expression("CO"["2"]), expression("CH"["4"]), 
+                                            expression("N"["2"]*"O")))
+
+river_flux_GWP3 %>% ggplot() +
     geom_boxplot(aes(x = River, y = GWP)) +
     xlab("River") +
-    ylab(bquote("Dissolved gases ("*mu~'g.'~L^-1*")"))+
+    ylab(bquote("Flux gases ("*mu~'g.'~L^-1*")"))+
     theme_bw()+
-    facet_wrap(.~ Dissolved_gases, scales = "free", labeller = label_parsed)
+    facet_wrap(.~ Flux_gases, scales = "free", labeller = label_parsed)
 
-ggsave("Boxplot_river_DG_cor_GWP.tiff", river3 %>% ggplot() +
+ggsave("Boxplot_river_Fluxes_cor_GWP.tiff", river_flux_GWP3 %>% ggplot() +
            geom_boxplot(aes(x = River, y = GWP, fill = River)) +
            # xlab("River") +
            ylab(bquote("GWP ("~CO[2]~"-equivalent )")) +
            theme_bw()+
-           facet_wrap(.~ Dissolved_gases, scales = "free", labeller = label_parsed) +
+           facet_wrap(.~ Flux_gases, scales = "free", labeller = label_parsed) +
            scale_fill_brewer(palette = "Paired")+
            theme(text=element_text(size=14),
                  strip.text.x = element_text(size=14),
@@ -397,12 +420,12 @@ ggsave("Boxplot_river_DG_cor_GWP.tiff", river3 %>% ggplot() +
 
 # calculate the percentage of each river on the total GWP
 
-river_GWP_river <- aggregate(data = river3, Concentration ~ River + Dissolved_gases, FUN = sum)
-river_GWP_river <- river_GWP_river %>% group_by(Dissolved_gases) %>%  mutate(Percentage = Concentration*100/sum(Concentration))
+river_GWP_river <- aggregate(data = river_flux_GWP3, Concentration ~ River + Flux_gases, FUN = sum)
+river_GWP_river <- river_GWP_river %>% group_by(Flux_gases) %>%  mutate(Percentage = Concentration*100/sum(Concentration))
 
-river_tGWP_river <- aggregate(data = river3, Concentration ~ River, FUN = sum) %>% mutate(Percentage = Concentration*100/sum(Concentration))
+river_tGWP_river <- aggregate(data = river_flux_GWP3, Concentration ~ River, FUN = sum) %>% mutate(Percentage = Concentration*100/sum(Concentration))
 
-summary(river2 %>% filter(Dissolved_gases == '"Dissolved CO"["2"]' & River == "Tomebamba") %>% select(Concentration))
+summary(river_flux_GWP3 %>% filter(Flux_gases == '"CO"["2"]' & River == "Tomebamba") %>% select(Concentration))
 
 #### !!! WQI per river ####
 
@@ -936,81 +959,81 @@ ggsave("Mosaic_river_pool.tiff",ggplot(river)+
                  text=element_text(size=13),
                  strip.text.x = element_text(size=13)),
        units = 'cm', height = 15, width = 20, dpi = 300)
-#### Permutation testing  ####
-# lack of data --> non parameteric analysis (not sure about the distribution of the data)
-# --> using Permanova for multivariate comparison for testing the simultaneous response of one or more variables to one or more 
-# factors in an ANOVA experimental design on the basis of any distance measure, using permutation methods
-# to accommodate random effects, hierarchical models, mixed models, quantitative covariates, 
-# repeated measures, unbalanced and/or asymmetrical designs, and, most recently, heterogeneous dispersions among groups.
-# or Fried.mann for univariate comparison repeated measures with block effects to avoid dependent samples.
-# Test the multivariate homogeneity of groups dispersions
-
-mod <- betadisper(daisy(GHGes, metric = "euclidean", stand = TRUE), group = river$River) # using betadisper is a multivariate analogue of Levene's test for homogeneity of variances.
-permutest(mod)
-anova(mod)
-plot(mod, hull=FALSE, ellipse=TRUE)
-boxplot(mod)
-
-# p value > 0.05 --> homogeneity of multivariate dispersions. 
-# PERMANOVA (likeANOVA) is very robust to heterogeneity for balanced designs but not unbalanced designs. 
-# Fortunately, in this case, it is homoegenous 
-
-# using Permanova anyway
-
-pairwise.adonis <- function(x,factors, sim.function = 'vegdist', sim.method = 'euclidean', p.adjust.m ='bonferroni'){
-    library(vegan)
-    
-    co = combn(unique(as.character(factors)),2)
-    pairs = c()
-    F.Model =c()
-    R2 = c()
-    p.value = c()
-    
-    for(elem in 1:ncol(co)){
-        if(sim.function == 'daisy'){
-            library(cluster)
-            x1 = daisy(x[factors %in% c(co[1,elem],co[2,elem]),],metric=sim.method)
-        } else {
-            x1 = vegdist(x[factors %in% c(co[1,elem],co[2,elem]),],method=sim.method)
-        }
-        
-        ad = adonis(x1 ~ factors[factors %in% c(co[1,elem],co[2,elem])] );
-        pairs = c(pairs,paste(co[1,elem],'vs',co[2,elem]));
-        F.Model =c(F.Model,ad$aov.tab[1,4]);
-        R2 = c(R2,ad$aov.tab[1,5]);
-        p.value = c(p.value,ad$aov.tab[1,6])
-    }
-    
-    p.adjusted = p.adjust(p.value,method=p.adjust.m)
-    sig = c(rep('',length(p.adjusted)))
-    sig[p.adjusted <= 0.05] <-'.'
-    sig[p.adjusted <= 0.01] <-'*'
-    sig[p.adjusted <= 0.001] <-'**'
-    sig[p.adjusted <= 0.0001] <-'***'
-    
-    pairw.res = data.frame(pairs,F.Model,R2,p.value,p.adjusted,sig)
-    print("Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1")
-    return(pairw.res)
-    
-} 
-
-GHGes <- river[,46:48]
-GHGes_dis_matrix <- daisy(GHGes, metric = "euclidean", stand = TRUE)
-
-set.seed(2805)
-
-permanova_river_phys <- adonis(GHGes_dis_matrix ~ T_w + DO + pH + EC+ Sal + Turb + Chlr, 
-                               data = river, permutations = 999, 
-                               method = "euclidean", strata = river$River)
-summary(permanova_river_phys)
-permanova_river_phys
-permanova_river_phys$aov.tab[,6] 
-
-pairwise.adonis(river[,6:13], river$River) #  physical
-
-
-# more about the 
-
+# #### Permutation testing  ####
+# # lack of data --> non parameteric analysis (not sure about the distribution of the data)
+# # --> using Permanova for multivariate comparison for testing the simultaneous response of one or more variables to one or more 
+# # factors in an ANOVA experimental design on the basis of any distance measure, using permutation methods
+# # to accommodate random effects, hierarchical models, mixed models, quantitative covariates, 
+# # repeated measures, unbalanced and/or asymmetrical designs, and, most recently, heterogeneous dispersions among groups.
+# # or Fried.mann for univariate comparison repeated measures with block effects to avoid dependent samples.
+# # Test the multivariate homogeneity of groups dispersions
+# 
+# mod <- betadisper(daisy(GHGes, metric = "euclidean", stand = TRUE), group = river$River) # using betadisper is a multivariate analogue of Levene's test for homogeneity of variances.
+# permutest(mod)
+# anova(mod)
+# plot(mod, hull=FALSE, ellipse=TRUE)
+# boxplot(mod)
+# 
+# # p value > 0.05 --> homogeneity of multivariate dispersions. 
+# # PERMANOVA (likeANOVA) is very robust to heterogeneity for balanced designs but not unbalanced designs. 
+# # Fortunately, in this case, it is homoegenous 
+# 
+# # using Permanova anyway
+# 
+# pairwise.adonis <- function(x,factors, sim.function = 'vegdist', sim.method = 'euclidean', p.adjust.m ='bonferroni'){
+#     library(vegan)
+#     
+#     co = combn(unique(as.character(factors)),2)
+#     pairs = c()
+#     F.Model =c()
+#     R2 = c()
+#     p.value = c()
+#     
+#     for(elem in 1:ncol(co)){
+#         if(sim.function == 'daisy'){
+#             library(cluster)
+#             x1 = daisy(x[factors %in% c(co[1,elem],co[2,elem]),],metric=sim.method)
+#         } else {
+#             x1 = vegdist(x[factors %in% c(co[1,elem],co[2,elem]),],method=sim.method)
+#         }
+#         
+#         ad = adonis(x1 ~ factors[factors %in% c(co[1,elem],co[2,elem])] );
+#         pairs = c(pairs,paste(co[1,elem],'vs',co[2,elem]));
+#         F.Model =c(F.Model,ad$aov.tab[1,4]);
+#         R2 = c(R2,ad$aov.tab[1,5]);
+#         p.value = c(p.value,ad$aov.tab[1,6])
+#     }
+#     
+#     p.adjusted = p.adjust(p.value,method=p.adjust.m)
+#     sig = c(rep('',length(p.adjusted)))
+#     sig[p.adjusted <= 0.05] <-'.'
+#     sig[p.adjusted <= 0.01] <-'*'
+#     sig[p.adjusted <= 0.001] <-'**'
+#     sig[p.adjusted <= 0.0001] <-'***'
+#     
+#     pairw.res = data.frame(pairs,F.Model,R2,p.value,p.adjusted,sig)
+#     print("Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1")
+#     return(pairw.res)
+#     
+# } 
+# 
+# GHGes <- river[,46:48]
+# GHGes_dis_matrix <- daisy(GHGes, metric = "euclidean", stand = TRUE)
+# 
+# set.seed(2805)
+# 
+# permanova_river_phys <- adonis(GHGes_dis_matrix ~ T_w + DO + pH + EC+ Sal + Turb + Chlr, 
+#                                data = river, permutations = 999, 
+#                                method = "euclidean", strata = river$River)
+# summary(permanova_river_phys)
+# permanova_river_phys
+# permanova_river_phys$aov.tab[,6] 
+# 
+# pairwise.adonis(river[,6:13], river$River) #  physical
+# 
+# 
+# # more about the 
+# 
 
 #### !!! Land-use per river ####
 river_flux <- read_csv("River.csv")
