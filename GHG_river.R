@@ -176,6 +176,8 @@ for (i in 1:ncol(river_mis)){
     river_mis[1,i] <- sum(is.na(river[,i]))
 }
 
+river <- river %>% select(-c(38:43))
+
 #### Boxplot of all countinuous variables regarding rivers #### 
 
 # This  is for make a list of graphs
@@ -252,70 +254,70 @@ ggsave("Barchart_river_Pool_class.tiff", bar_river_1[[6]],units = 'cm', height =
 ggsave("Barchart_river_LB.tiff", bar_river_1[[1]],units = 'cm', height = 20, width = 40, dpi = 300)
 ggsave("Barchart_river_RB.tiff", bar_river_1[[2]],units = 'cm', height = 20, width = 40, dpi = 300)
 
-#### Boxplot of not-corrected DG regarding rivers ####
-
-river2 <- cbind(river[,3:5],river[,40:42])
-
-ggsave("Boxplot_river_CO2.tiff", river2 %>% 
-           ggplot() +
-           geom_boxplot(aes(x = River, y = Dis_CO2_1)) +
-           xlab("River") +
-           ylab("CO2"))
-
-ggsave("Boxplot_river_N2O.tiff", river2 %>% 
-           ggplot() +
-           geom_boxplot(aes(x = River, y = Dis_N2O_1)) +
-           xlab("River") +
-           ylab("N2O"))
-
-ggsave("Boxplot_river_CH4.tiff", river2 %>% 
-           ggplot() +
-           geom_boxplot(aes(x = River, y = Dis_CH4_1)) +
-           xlab("River") +
-           ylab("CH4"))
-
-ggsave("Boxplot_river_DG.tiff", river2 %>% gather(key = "Dissolved_gases", value = "Concentration", - Time, - Location, -River) %>% 
-           ggplot() +
-           geom_boxplot(aes(x = River, y = Concentration)) +
-           xlab("River") +
-           ylab("Dissolved gases (ppm)")+
-           facet_wrap(.~ as.factor(Dissolved_gases), scales = "free"),
-       units = 'cm', height = 20, width = 40, dpi = 300
-       )
-#### Boxplot of not-corrected DG in different positions in the river ####
-
-river3 <- cbind(river_dis[,3:5],river_dis[,40:48])
-river3 <- river3 %>%  gather(key = "Dissolved_gases", value = "Concentration", - Time, - Location, -River)
-
-# Boxplot in different positions 
-
-ggsave("Boxplot_river_position_CO2.tiff", river3 %>% filter(str_detect(Dissolved_gases, "Dis_CO2_1|Dis_CO2_2|Dis_CO2_3")) %>% 
-           ggplot(aes(x = as.factor(Dissolved_gases), y = Concentration)) +
-           geom_bar(stat = "identity") +
-           xlab("Dissolved_gas") +
-           ylab("CO2 (ppm)") +
-           facet_wrap(.~Location),
-       units = 'cm', height = 20, width = 40, dpi = 300)
-
-ggsave("Boxplot_river_position_CH4.tiff", river3 %>% filter(str_detect(Dissolved_gases, "Dis_CH4_1|Dis_CH4_2|Dis_CH4_3")) %>% 
-           ggplot(aes(x = as.factor(Dissolved_gases), y = Concentration)) +
-           geom_bar(stat = "identity") +
-           xlab("Dissolved_gas") +
-           ylab("CH4 (ppm)") +
-           facet_wrap(.~Location, scales = "free"),
-       units = 'cm', height = 20, width = 40, dpi = 300)
-
-ggsave("Boxplot_river_position_N2O.tiff", river3 %>% filter(str_detect(Dissolved_gases, "Dis_N2O_1|Dis_N2O_2|Dis_N2O_3")) %>% 
-           ggplot(aes(x = as.factor(Dissolved_gases), y = Concentration)) +
-           geom_bar(stat = "identity") +
-           xlab("Dissolved_gas") +
-           ylab("N2O (ppm)") +
-           facet_wrap(.~Location, scales = "free"),
-       units = 'cm', height = 20, width = 40, dpi = 300)
+# #### Boxplot of not-corrected DG regarding rivers ####
+# 
+# river2 <- cbind(river[,3:5],river[,40:42])
+# 
+# ggsave("Boxplot_river_CO2.tiff", river2 %>% 
+#            ggplot() +
+#            geom_boxplot(aes(x = River, y = Dis_CO2_1)) +
+#            xlab("River") +
+#            ylab("CO2"))
+# 
+# ggsave("Boxplot_river_N2O.tiff", river2 %>% 
+#            ggplot() +
+#            geom_boxplot(aes(x = River, y = Dis_N2O_1)) +
+#            xlab("River") +
+#            ylab("N2O"))
+# 
+# ggsave("Boxplot_river_CH4.tiff", river2 %>% 
+#            ggplot() +
+#            geom_boxplot(aes(x = River, y = Dis_CH4_1)) +
+#            xlab("River") +
+#            ylab("CH4"))
+# 
+# ggsave("Boxplot_river_DG.tiff", river2 %>% gather(key = "Dissolved_gases", value = "Concentration", - Time, - Location, -River) %>% 
+#            ggplot() +
+#            geom_boxplot(aes(x = River, y = Concentration)) +
+#            xlab("River") +
+#            ylab("Dissolved gases (ppm)")+
+#            facet_wrap(.~ as.factor(Dissolved_gases), scales = "free"),
+#        units = 'cm', height = 20, width = 40, dpi = 300
+#        )
+# #### Boxplot of not-corrected DG in different positions in the river ####
+# 
+# river3 <- cbind(river_dis[,3:5],river_dis[,40:48])
+# river3 <- river3 %>%  gather(key = "Dissolved_gases", value = "Concentration", - Time, - Location, -River)
+# 
+# # Boxplot in different positions 
+# 
+# ggsave("Boxplot_river_position_CO2.tiff", river3 %>% filter(str_detect(Dissolved_gases, "Dis_CO2_1|Dis_CO2_2|Dis_CO2_3")) %>% 
+#            ggplot(aes(x = as.factor(Dissolved_gases), y = Concentration)) +
+#            geom_bar(stat = "identity") +
+#            xlab("Dissolved_gas") +
+#            ylab("CO2 (ppm)") +
+#            facet_wrap(.~Location),
+#        units = 'cm', height = 20, width = 40, dpi = 300)
+# 
+# ggsave("Boxplot_river_position_CH4.tiff", river3 %>% filter(str_detect(Dissolved_gases, "Dis_CH4_1|Dis_CH4_2|Dis_CH4_3")) %>% 
+#            ggplot(aes(x = as.factor(Dissolved_gases), y = Concentration)) +
+#            geom_bar(stat = "identity") +
+#            xlab("Dissolved_gas") +
+#            ylab("CH4 (ppm)") +
+#            facet_wrap(.~Location, scales = "free"),
+#        units = 'cm', height = 20, width = 40, dpi = 300)
+# 
+# ggsave("Boxplot_river_position_N2O.tiff", river3 %>% filter(str_detect(Dissolved_gases, "Dis_N2O_1|Dis_N2O_2|Dis_N2O_3")) %>% 
+#            ggplot(aes(x = as.factor(Dissolved_gases), y = Concentration)) +
+#            geom_bar(stat = "identity") +
+#            xlab("Dissolved_gas") +
+#            ylab("N2O (ppm)") +
+#            facet_wrap(.~Location, scales = "free"),
+#        units = 'cm', height = 20, width = 40, dpi = 300)
 
 #### Boxplot of corrected DG regarding rivers ####
 
-river2 <- cbind(river[,3:5],river[,46:48])
+river2 <- cbind(river[,3:5],river[,40:42])
 
 colnames(river2)[4:6] <- c("Dissolved N2O", "Dissolved CH4","Dissolved CO2")
 
@@ -353,28 +355,29 @@ ggsave("Boxplot_river_DG_cor.tiff", river2 %>% gather(key = "Dissolved_gases", v
 #### !!! GWP per river ####
 
 river3 <- river2 %>% gather(key = "Dissolved_gases", value = "Concentration", - Time, - Location, -River)
-river3$Dissolved_gases <- as.factor(river3$Dissolved_gases)
 
-if (river3$Dissolved_gases == "Dissolved CH4"){
-    river3$Concentration = river3$Concentration*28 
-}
-if (river3$Dissolved_gases == "Dissolved N2O"){
-    river3$Concentration = river3$Concentration*265 
-}
+
+river_GWP_CO2 <- river3 %>% filter(Dissolved_gases == "Dissolved CO2") %>% select(Concentration)*1
+river_GWP_CH4 <- river3 %>% filter(Dissolved_gases == "Dissolved CH4") %>% select(Concentration)*28
+river_GWP_N2O <- river3 %>% filter(Dissolved_gases == "Dissolved N2O") %>% select(Concentration)*265
+river_GWP <- bind_rows(river_GWP_N2O, river_GWP_CH4, river_GWP_CO2)
+
+river3$GWP <- as.numeric(unlist(river_GWP))
+river3$Dissolved_gases <- as.factor(river3$Dissolved_gases)
 
 river3$Dissolved_gases <- relevel(river3$Dissolved_gases,"Dissolved CO2")
 river3$Dissolved_gases <- factor(river3$Dissolved_gases, 
                                  labels = c(expression("Dissolved CO"["2"]), expression("Dissolved CH"["4"]), expression("Dissolved N"["2"]*"O")))
 
 river3 %>% ggplot() +
-    geom_boxplot(aes(x = River, y = Concentration)) +
+    geom_boxplot(aes(x = River, y = GWP)) +
     xlab("River") +
     ylab(bquote("Dissolved gases ("*mu~'g.'~L^-1*")"))+
     theme_bw()+
     facet_wrap(.~ Dissolved_gases, scales = "free", labeller = label_parsed)
 
 ggsave("Boxplot_river_DG_cor_GWP.tiff", river3 %>% ggplot() +
-           geom_boxplot(aes(x = River, y = Concentration, fill = River)) +
+           geom_boxplot(aes(x = River, y = GWP, fill = River)) +
            # xlab("River") +
            ylab(bquote("GWP ("~CO[2]~"-equivalent )")) +
            theme_bw()+
@@ -399,7 +402,7 @@ river_GWP_river <- river_GWP_river %>% group_by(Dissolved_gases) %>%  mutate(Per
 
 river_tGWP_river <- aggregate(data = river3, Concentration ~ River, FUN = sum) %>% mutate(Percentage = Concentration*100/sum(Concentration))
 
-
+summary(river2 %>% filter(Dissolved_gases == '"Dissolved CO"["2"]' & River == "Tomebamba") %>% select(Concentration))
 
 #### !!! WQI per river ####
 
@@ -407,13 +410,16 @@ river4 <- cbind(river_WQI[,5],river_WQI[,37:39], river_WQI[,43:47])
 colnames(river4)[2:4] <- c("Dissolved N2O", "Dissolved CH4","Dissolved CO2")
 river4 <- river4 %>% gather(key = "Dissolved_gases", value = "Concentration", 
                             -River, -Prati_INDEX_1,- Prati_WQI_1,- Prati_INDEX_2, -Prati_WQI_2, -`OWQI-2`)
+
+river_GWP2_CO2 <- river4 %>% filter(Dissolved_gases == "Dissolved CO2") %>% select(Concentration)*1
+river_GWP2_CH4 <- river4 %>% filter(Dissolved_gases == "Dissolved CH4") %>% select(Concentration)*28
+river_GWP2_N2O <- river4 %>% filter(Dissolved_gases == "Dissolved N2O") %>% select(Concentration)*265
+
+river_GWP2 <- bind_rows(river_GWP2_N2O, river_GWP2_CH4, river_GWP2_CO2)
+
+river4$GWP <- as.numeric(unlist(river_GWP2))
 river4$Dissolved_gases <- as.factor(river4$Dissolved_gases)
-if (river4$Dissolved_gases == "Dissolved CH4"){
-    river4$Concentration = river4$Concentration*28 
-}
-if (river4$Dissolved_gases == "Dissolved N2O"){
-    river4$Concentration = river4$Concentration*265 
-}
+
 
 river4$Dissolved_gases <- relevel(river4$Dissolved_gases,"Dissolved CO2")
 river4$Dissolved_gases <- factor(river4$Dissolved_gases, 
@@ -429,7 +435,7 @@ river4$Prati_WQI_2 <- ordered(river4$Prati_WQI_2, labels= c("Good Quality", "Acc
 river4$`OWQI-2` <- relevel(river4$`OWQI-2`, "Good")
 
 ggsave("Boxplot_river_PWQI_GWP.tiff", river4 %>% ggplot() +
-           geom_boxplot(aes(x = Prati_WQI_1, y = Concentration, fill = Prati_WQI_1)) +
+           geom_boxplot(aes(x = Prati_WQI_1, y = GWP, fill = Prati_WQI_1)) +
            # xlab("River") +
            ylab(bquote("GWP ("~CO[2]~"-equivalent )"))+
            theme_bw()+
@@ -448,7 +454,7 @@ ggsave("Boxplot_river_PWQI_GWP.tiff", river4 %>% ggplot() +
 )
 
 ggsave("Boxplot_river_WQI_GWP_2.tiff", river4 %>% ggplot() +
-           geom_boxplot(aes(x = Prati_WQI_2, y = Concentration, fill = Prati_WQI_2)) +
+           geom_boxplot(aes(x = Prati_WQI_2, y = GWP, fill = Prati_WQI_2)) +
            # xlab("River") +
            ylab(bquote("GWP ("~CO[2]~"-equivalent)"))+
            theme_bw()+
@@ -467,7 +473,7 @@ ggsave("Boxplot_river_WQI_GWP_2.tiff", river4 %>% ggplot() +
 )
 
 ggsave("Boxplot_river_OWQI_GWP.tiff", river4 %>% ggplot() +
-           geom_boxplot(aes(x = river4$`OWQI-2`, y = Concentration, fill = river4$`OWQI-2`),
+           geom_boxplot(aes(x = river4$`OWQI-2`, y = GWP, fill = river4$`OWQI-2`),
                         # outlier.shape = NA
                         ) +
            # xlab("River") +
@@ -490,7 +496,7 @@ ggsave("Boxplot_river_OWQI_GWP.tiff", river4 %>% ggplot() +
 
 # percentage 
 
-river4_per_Prati <- river4 %>% select(Prati_WQI_1, `OWQI-2`, `Dissolved_gases`, Concentration)
+river4_per_Prati <- river4 %>% select(Prati_WQI_1, `OWQI-2`, `Dissolved_gases`, GWP)
 
 river4_per_Prati$Prati_WQI_1 <- as.character(river4_per_Prati$Prati_WQI_1)
 river4_per_Prati$Prati_WQI_1 <- str_replace_all(river4_per_Prati$Prati_WQI_1, "Very Heavily Polluted", "Heavily Polluted")
@@ -521,8 +527,7 @@ river4_per_Prati <- river4_per_Prati %>% group_by(`Dissolved Gases`, WQI, `Water
 river4_per_Prati$`Dissolved Gases` <- as.factor(river4_per_Prati$`Dissolved Gases`)
 river4_per_Prati$WQI <- as.factor(river4_per_Prati$WQI)
 river4_per_Prati$`Water Quality` <- as.factor(river4_per_Prati$`Water Quality`)
-river4_per_Prati$WQI <-ordered(river4_per_Prati$WQI,
-                                 labels= c("Prati Index", "Oregon Index"))
+# river4_per_Prati$WQI <-ordered(river4_per_Prati$WQI,labels= c("Prati Index", "Oregon Index"))
 river4_per_Prati$`Water Quality` <-ordered(river4_per_Prati$`Water Quality`,
                                            labels= c("Good Quality", "Acceptable Quality",
                                                      "Polluted", "Heavily Polluted"))
@@ -558,7 +563,7 @@ river$N2O_GWP <- river$`Dissovled N2O`*265
 river$CH4_GWP <- river$`Dissovled CH4`*28
 river$CO2_GWP <- river$`Dissolved CO2`*1
 
-river5 <- cbind(river[,3:5],river[,49:51])
+river5 <- cbind(river[,3:5],river[,43:45])
 river5 <- river5 %>% gather(key = "Dissolved_gases", value = "GWP", - Time, - Location, -River)
 river5$Dissolved_gases <- factor(river5$Dissolved_gases, levels = c('CO2_GWP','CH4_GWP','N2O_GWP'))
 
@@ -572,11 +577,11 @@ ggsave("Boxplot_GWP.tiff", river5 %>%
 )
 
 #### Stacked plot of GWP regarding rivers #### 
-river6 <- cbind(river[,3:5],river[,49:51]) %>% filter(River == "Cuenca") %>% select(c("N2O_GWP","CH4_GWP","CO2_GWP")) %>% colSums()
+river6 <- cbind(river[,3:5],river[,43:45]) %>% filter(River == "Cuenca") %>% select(c("N2O_GWP","CH4_GWP","CO2_GWP")) %>% colSums()
 river7 <- transpose(as.data.frame(river6))
 
 for (i in 2:(nlevels(river$River))){
-    river6 <- cbind(river[,3:5],river[,49:51]) %>% filter(River == levels(river$River)[i]) %>% select(c("N2O_GWP","CH4_GWP","CO2_GWP")) %>% colSums()
+    river6 <- cbind(river[,3:5],river[,43:45]) %>% filter(River == levels(river$River)[i]) %>% select(c("N2O_GWP","CH4_GWP","CO2_GWP")) %>% colSums()
     river7 <- rbind(river7,transpose(as.data.frame(river6))) 
 }
 colnames(river7) <- c("N2O_GWP","CH4_GWP","CO2_GWP")
@@ -630,10 +635,10 @@ FUN_river(river[,6:13], river)
 FUN_river(river[,26:33], river)
 
 # Dissolved gas
-FUN_river(river[,46:48], river)
+FUN_river(river[,40:42], river)
 
 # Dissolved gases
-colnames(river)[46:48] <- c("Dissovled N2O", "Dissovled CH4","Dissolved CO2")
+colnames(river)[40:42] <- c("Dissovled N2O", "Dissovled CH4","Dissolved CO2")
 
 m <- leaflet(width = "100%", height = "1000px") %>%
     addTiles(tilesURL) %>%
@@ -650,7 +655,7 @@ m <- leaflet(width = "100%", height = "1000px") %>%
 saveWidget(m, "river_dissolved_gases.html")
 # Dissolved gases in GWP 
 
-river4 <- as.data.frame(river[,46:48])
+river4 <- as.data.frame(river[,40:42])
 
 river4$`Dissovled N2O` <- river4$`Dissovled N2O`*265
 river4$`Dissovled CH4` <- river4$`Dissovled CH4`*28
@@ -708,7 +713,7 @@ FUN_river_CU(river_CU[,6:13], river_CU)
 FUN_river_CU(river_CU[,26:33], river_CU)
 
 # Dissolved gas
-FUN_river_CU(river_CU[,46:48], river_CU)
+FUN_river_CU(river_CU[,40:42], river_CU)
 
 #*** Machangara tributary #### 
 FUN_river_MA <- function(x,x2){
@@ -743,7 +748,7 @@ FUN_river_MA(river_MA[,6:13], river_MA)
 FUN_river_MA(river_MA[,26:33], river_MA)
 
 # Dissolved gas
-FUN_river_MA(river_MA[,46:48], river_MA)
+FUN_river_MA(river_MA[,40:42], river_MA)
 
 #*** Tarqui tributary #### 
 FUN_river_TA <- function(x,x2){
@@ -778,7 +783,7 @@ FUN_river_TA(river_TA[,6:13], river_TA)
 FUN_river_TA(river_TA[,26:33], river_TA)
 
 # Dissolved gas
-FUN_river_TA(river_TA[,46:48], river_TA)
+FUN_river_TA(river_TA[,40:42], river_TA)
 #*** Tomebamba tributary #### 
 FUN_river_TO <- function(x,x2){
     for (i in 1:length(colnames(x))){
@@ -812,7 +817,7 @@ FUN_river_TO(river_TO[,6:13], river_TO)
 FUN_river_TO(river_TO[,26:33], river_TO)
 
 # Dissolved gas
-FUN_river_TO(river_TO[,46:48], river_TO)
+FUN_river_TO(river_TO[,40:42], river_TO)
 #*** Yanuncay tributary #### 
 FUN_river_YA <- function(x,x2){
     for (i in 1:length(colnames(x))){
@@ -846,7 +851,7 @@ FUN_river_YA(river_YA[,6:13], river_YA)
 FUN_river_YA(river_YA[,26:33], river_YA)
 
 # Dissolved gas
-FUN_river_YA(river_YA[,46:48], river_YA)
+FUN_river_YA(river_YA[,40:42], river_YA)
 
 
 
@@ -1134,107 +1139,6 @@ ggsave("Per_river_Flux_BB.tiff", river_flux_land_3 %>% ggplot() +
        units = 'cm', height = 20, width = 30, dpi = 300
 )
 
-#### Spatio-temporal variability ####
-#*** using mixed model ####
-# N2O 
-# log transform and data standardization 
-
-river_sta <- river
-river_sta$log_N2O <- log(river_sta$Dis_N2O_cor)
-river_sta$sta_N2O <- standardize(river_sta$log_N2O) 
-
-# remove outliers or not
-# using box plot 
-
-boxplot.stats(river_sta$sta_N2O)$out
-
-# using cleveland dotplot
-
-ggplot(river_sta) +
-    aes(x = sta_N2O, y = No) +
-    geom_point(size = 3L, colour = "#0c4c8a") +
-    xlab(bquote("Standardized Dissolved "*N[2]*"O")) +
-    ylab("Order of the data")+
-    theme_bw()+
-    theme(axis.title.y = element_text(size = 14),
-          axis.title.x = element_text(size = 14),
-          text = element_text(size = 14))
-
-# both result in two outliers whose values are 3.939392 and 2.722888 --> remove them or not --> not 
-
-# mixed model
-
-set.seed(1)
-river_lmm2_N2O <- lme(sta_N2O~1, data = river_sta, random = ~1|River/Date)
-r.squaredGLMM(river_lmm2_N2O)
-summary(river_lmm2_N2O)
-vcov(river_lmm2_N2O)
-plot(river_lmm2_N2O)
-plot(river$River, resid(river_lmm2_N2O))
-plot(river$Date, resid(river_lmm2_N2O))
-
-# ICC values 
-ICC_river <- as.numeric(VarCorr(river_lmm2_N2O)[[2]])/
-    (as.numeric(VarCorr(river_lmm2_N2O)[[2]]) + as.numeric(VarCorr(river_lmm2_N2O)[[4]])+
-         as.numeric(VarCorr(river_lmm2_N2O)[[5]]))
-ICC_date <- (as.numeric(VarCorr(river_lmm2_N2O)[[2]])+ as.numeric(VarCorr(river_lmm2_N2O)[[4]]))/
-    (as.numeric(VarCorr(river_lmm2_N2O)[[2]]) + as.numeric(VarCorr(river_lmm2_N2O)[[4]])+
-         as.numeric(VarCorr(river_lmm2_N2O)[[5]]))
-
-# ICC river and date are low meaning low spatiotemporal variability
-
-# As such, can applied Kruskal-Wallis
-
-#*** Kruskal-wallis with Bonferroni correction ####
-
-river_dun_CO2 <- as.data.frame(dunn.test(river$Dis_CO2_cor, river$River, method=c('bonferroni'))[4:5])
-river_dun_CH4 <- as.data.frame(dunn.test(river$Dis_CH4_cor, river$River, method=c('bonferroni'))[4:5])
-river_dun_N2O <- as.data.frame(dunn.test(river$Dis_N2O_cor, river$River, method=c('bonferroni'))[4:5])
-river_dun <- bind_rows(river_dun_CO2, river_dun_CH4, river_dun_N2O, .id = "Dissolved gases")
-write_csv(river_dun, "river_dun.csv")
-
-river_dun_CO2_D <- as.data.frame(dunn.test(river$Dis_CO2_cor, river$Date, method=c('bonferroni'))[4:5])
-river_dun_CH4_D <- as.data.frame(dunn.test(river$Dis_CH4_cor, river$Date, method=c('bonferroni'))[4:5])
-river_dun_N2O_D <- as.data.frame(dunn.test(river$Dis_N2O_cor, river$Date, method=c('bonferroni'))[4:5])
-river_dun_D <- bind_rows(river_dun_CO2_D, river_dun_CH4_D, river_dun_N2O_D, .id = "Dissolved gases")
-write_csv(river_dun_D, "river_dun_D.csv")
-
-#*** random forest **** 
-
-# choose the correct dataset. Remove correlated parameters.
-
-river_RF <- variable_river %>% select(-c(Sal, EC, TDS, BOD, TN, TP))
-river_RF$N2O <- river_sta$sta_N2O
-colnames(river_RF)[13] <- 'Solar'
-# make a random model
-
-set.seed(1234)
-regressor <- randomForest(river_RF[,-14], river_RF$N2O, ntree = 500, importance = TRUE)
-
-
-imp <- importance(regressor, type=1)
-featureImportance <- data.frame(Feature=row.names(imp), Importance=imp[,1])
-ggplot(featureImportance, aes(x=reorder(Feature, Importance), y=Importance)) +
-    geom_bar(stat="identity", fill="#53cfff") +
-    coord_flip() + 
-    theme_bw(base_size=20) +
-    xlab("") +
-    ylab("Importance") + 
-    ggtitle("Random Forest Feature Importance") +
-    theme(plot.title=element_text(size=18))
-
-# using mlr to tune hyperparameter of random forest
-
-# creat mlr task and convert factors to dummy features
-
-trainTask <- makeRegrTask(data = river_RF,target = "N2O")
-trainTask = createDummyFeatures(trainTask)
-
-# create mlr learner
-
-lrn = makeLearner("regr.ranger") # From here 14/08
-
-
 #### !!! Area plot from source to Mouth ####
 
 river_SM <- read_csv("River.csv")
@@ -1326,7 +1230,7 @@ ggsave("River_DG_SM.tiff", river_SM_DG %>% ggplot() +
        units = 'cm', height = 20/1.2, width = 40/1.2, dpi = 300
 )
 
-# using Nutrient with GWP
+# using Nutrient 
 
 river_SM_NU <- river_SM[,c(5, 24:29, 42)] 
 river_SM_NU <- river_SM_NU %>% gather(key = "Nutrients", value = "Concentration", -River, -Distance)
@@ -1358,7 +1262,7 @@ ggsave("River_NU_SM.tiff", river_SM_NU %>% ggplot() +
                  legend.spacing.x = unit(0.5, 'cm')),
        units = 'cm', height = 20/1.2, width = 40/1.2, dpi = 300
 )
-# using Nutrient with GWP
+# using OM 
 
 river_SM_OM <- river_SM[,c(5, 22,23, 42)] 
 river_SM_OM <- river_SM_OM %>% gather(key = "Organic Matter", value = "Concentration", -River, -Distance)
