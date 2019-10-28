@@ -10,6 +10,7 @@ library(grid)
 library(chron)
 library(devtools)
 library(SOfun)
+library(usethis)
 
 # data visualization 
 
