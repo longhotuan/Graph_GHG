@@ -371,9 +371,13 @@ colnames(river_flux_GWP)[6:41] <- c("Water temperature", "pH", "DO", "EC", "TDS"
                                 "Right Bank", "Shading", "Erosion", "Flow variability", "Average depth", "Average velocity",
                                 "Pool Class", "BOD", "COD", "TN" ,"NH4", "NO2", "NO3", "TP", "PO4", "Air temperature", "Wind velocity",
                                 "Rain", "Solar radiation", "Latitude", "Longitude", "Dissolved N2O", "Dissolved CH4", "Dissolved CO2",
-                                "Flux CO2", "Flux CH4", "Flux N2O")
+                                "Flux CO2_umol", "Flux CH4_umol", "Flux N2O_umol")
 
-river_flux_GWP2 <- river_flux_GWP %>% select(c(3:5,39:41))
+river_flux_GWP$`Flux CO2` <- river_flux_GWP$`Flux CO2_umol`*(12+16*2)/1000
+river_flux_GWP$`Flux CH4` <- river_flux_GWP$`Flux CH4_umol`*(12+4)/1000
+river_flux_GWP$`Flux N2O` <- river_flux_GWP$`Flux N2O_umol`*(14*2+16)/1000
+
+river_flux_GWP2 <- river_flux_GWP %>% select(c(3:5,43:45))
 
 
 river_flux_GWP3 <- river_flux_GWP2 %>% gather(key = "Flux_gases", value = "Concentration", - Time, - Location, -River)
@@ -395,14 +399,14 @@ river_flux_GWP3$Flux_gases <- factor(river_flux_GWP3$Flux_gases,
 river_flux_GWP3 %>% ggplot() +
     geom_boxplot(aes(x = River, y = GWP)) +
     xlab("River") +
-    ylab(bquote("Flux gases ("*mu~'g.'~L^-1*")"))+
+    ylab(bquote("Flux gases (mg"~CO[2]*"-equivalent. "*m^-2*"."*d^-1*")"))+
     theme_bw()+
     facet_wrap(.~ Flux_gases, scales = "free", labeller = label_parsed)
 
 ggsave("Boxplot_river_Fluxes_cor_GWP.tiff", river_flux_GWP3 %>% ggplot() +
            geom_boxplot(aes(x = River, y = GWP, fill = River)) +
            # xlab("River") +
-           ylab(bquote("GWP ("~CO[2]~"-equivalent )")) +
+           ylab(bquote("GWP (mg"~CO[2]*"-equivalent."*m^-2*"."*d^-1*")")) +
            theme_bw()+
            facet_wrap(.~ Flux_gases, scales = "free", labeller = label_parsed) +
            scale_fill_brewer(palette = "Paired")+
@@ -423,9 +427,12 @@ ggsave("Boxplot_river_Fluxes_cor_GWP.tiff", river_flux_GWP3 %>% ggplot() +
 river_GWP_river <- aggregate(data = river_flux_GWP3, Concentration ~ River + Flux_gases, FUN = sum)
 river_GWP_river <- river_GWP_river %>% group_by(Flux_gases) %>%  mutate(Percentage = Concentration*100/sum(Concentration))
 
-river_tGWP_river <- aggregate(data = river_flux_GWP3, Concentration ~ River, FUN = sum) %>% mutate(Percentage = Concentration*100/sum(Concentration))
+river_tGWP_river <- aggregate(data = river_flux_GWP3, Concentration ~ River, FUN = sum) %>% 
+    mutate(Percentage = Concentration*100/sum(Concentration))
 
 summary(river_flux_GWP3 %>% filter(Flux_gases == '"CO"["2"]' & River == "Tomebamba") %>% select(Concentration))
+
+flux_ratio <- river_flux_GWP$`Flux CO2`/river_flux_GWP$`Flux CH4`
 
 #### !!! WQI per river ####
 
