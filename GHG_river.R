@@ -634,6 +634,7 @@ river_flux_GWP3$Flux_gases <- factor(river_flux_GWP3$Flux_gases,
                                      labels = c(expression("CO"["2"]), expression("CH"["4"]), 
                                                 expression("N"["2"]*"O")))
 
+
 # CO2 equivalent 
 
 ggsave("Fluxes_GWP_Co2_equi.tiff", river_flux_GWP3 %>% ggplot(aes(x = River, y = GWP, fill = River)) +
@@ -661,7 +662,11 @@ river_flux_GWP3$Concentration[river_flux_GWP3$Flux_gases == '"CO"["2"]'] <- rive
 river_flux_GWP3$Concentration[river_flux_GWP3$Flux_gases == '"CH"["4"]'] <- river_flux_GWP3$GWP[river_flux_GWP3$Flux_gases == '"CH"["4"]']/28
 river_flux_GWP3$Concentration[river_flux_GWP3$Flux_gases == '"N"["2"] * "O"'] <- river_flux_GWP3$GWP[river_flux_GWP3$Flux_gases == '"N"["2"] * "O"']/265
 
-ggsave("Fluxes_GWP_no_Co2_equi.tiff", river_flux_GWP3 %>% ggplot(aes(x = River, y = Concentration, fill = River)) +
+river_flux_GWP3$River <- factor(river_flux_GWP3$River,
+                                levels = c("Machangara", "Yanuncay", "Cuenca", "Tarqui", "Tomebamba"))
+
+ggsave("Fluxes_GWP_no_Co2_equi.tiff", river_flux_GWP3 %>% 
+           ggplot(aes(x = River, y = Concentration, fill = River)) +
            geom_boxplot() +
            stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="red", fill="red") +
            theme_bw()+
@@ -679,6 +684,7 @@ ggsave("Fluxes_GWP_no_Co2_equi.tiff", river_flux_GWP3 %>% ggplot(aes(x = River, 
                  legend.spacing.x = unit(0.5, 'cm')), 
        units = 'cm', height = 15, width = 30, dpi = 300
 )
+
 
 #### Correct_Mean+SEM of the total GWP ####
 
@@ -715,6 +721,11 @@ ggsave("Total_fluxes_Co2_equi.tiff", river_sem %>%
                  legend.spacing.x = unit(0.5, 'cm')),
        units = 'cm', height = 15, width = 30, dpi = 300
 )
+
+river_sem$Tributaries <- factor(river_sem$Tributaries,
+                                levels = c("Machangara", "Yanuncay", "Cuenca", "Tarqui", "Tomebamba"))
+
+
 
 ggsave("Total_fluxes_no_Co2_equi.tiff", river_sem %>% 
            ggplot(aes(x = Tributaries, y = Mean, fill = Tributaries)) +
@@ -831,8 +842,8 @@ river_sem_sum$SEM4 <- river_sem_sum$SEM*365*(95.92+111.19+138.98+113.03+113.81)/
 river_WQI <- read_csv("River_WQI2.csv")
 
 river_WQI$F_CO2_mg <- river_WQI$F_CO2*(12+16*2)/1000
-river_WQI$F_CH4_mg <- river_WQI$F_CH4*(12+4)/1000
-river_WQI$F_N2O_mg <- river_WQI$F_N2O*(14*2+16)/1000
+river_WQI$F_CH4_mg <- river_WQI$F_CH4*(12+4)*28/1000
+river_WQI$F_N2O_mg <- river_WQI$F_N2O*(14*2+16)*265/1000
 
 river_WQI_v2 <- river_WQI[, c(5, 44, 47, 51:53)] %>% pivot_longer(c(-River,-Prati_WQI_1, -`OWQI-2`), names_to = "Fluxes", values_to = "Concentration")
 river_WQI_v2$Fluxes <- as_factor(river_WQI_v2$Fluxes)
@@ -927,8 +938,8 @@ ggsave("WQI_final_no_CO2_equi.tiff", river_WQI_v2 %>%
 # sum up WQI
 
 river_WQI_sum_Prati <- river_WQI_v2 %>% filter(WQI == "Prati Index")
-river_WQI_sum_Prati <- merge(aggregate(data = river_WQI_sum_Prati, Concentration ~ `Water Quality` + Fluxes, FUN =mean), 
-                             aggregate(data = river_WQI_sum_Prati, Concentration ~ `Water Quality` + Fluxes, FUN =std.error), 
+river_WQI_sum_Prati <- merge(aggregate(data = river_WQI_sum_Prati, Concentration2 ~ `Water Quality` + Fluxes, FUN =mean), 
+                             aggregate(data = river_WQI_sum_Prati, Concentration2 ~ `Water Quality` + Fluxes, FUN =std.error), 
                              by = c("Water Quality", "Fluxes"))
 
 river_WQI_sum_Oregon <- river_WQI_v2 %>% filter(WQI == "Oregon Index")
@@ -939,14 +950,11 @@ for (i in 1:nrow(river_WQI_sum_Oregon)){
     }
 }
 river_WQI_sum_Oregon$`Water Quality` <- as.factor(river_WQI_sum_Oregon$`Water Quality`)
-river_WQI_sum_Oregon <- merge(aggregate(data = river_WQI_sum_Oregon, Concentration ~ `Water Quality` + Fluxes, FUN =mean), 
-                             aggregate(data = river_WQI_sum_Oregon, Concentration ~ `Water Quality` + Fluxes, FUN =std.error), 
+river_WQI_sum_Oregon <- merge(aggregate(data = river_WQI_sum_Oregon, Concentration2 ~ `Water Quality` + Fluxes, FUN =mean), 
+                             aggregate(data = river_WQI_sum_Oregon, Concentration2 ~ `Water Quality` + Fluxes, FUN =std.error), 
                              by = c("Water Quality", "Fluxes")) # Fair and Good of Oregon contain only one variable --> No SEM
 
 
-
-
-    
 #### Correct_box plot Land-use #####
 
 river_LS <- river_WQI[, c(15, 16, 51:53)] %>% pivot_longer(c(-LB, -RB), names_to = "Fluxes", values_to = "Concentration") %>% 
@@ -995,15 +1003,20 @@ river_LS$Concentration2[river_LS$Fluxes == '"CO"["2"]'] <- river_LS$Concentratio
 river_LS$Concentration2[river_LS$Fluxes == '"CH"["4"]'] <- river_LS$Concentration[river_LS$Fluxes == '"CH"["4"]']/28
 river_LS$Concentration2[river_LS$Fluxes == '"N"["2"] * "O"'] <- river_LS$Concentration[river_LS$Fluxes == '"N"["2"] * "O"']/265
 
-ggsave("LS_final_no_CO2_equi.tiff", river_LS %>% 
+river_LS$`Land use` <- as.factor(river_LS$`Land use`)
+river_LS$`Land use` <- factor(river_LS$`Land use`, 
+                              levels = c("Nature", "Industry", "Agriculture", "Road", "Urban"))
+
+ggsave("LS_final_no_CO2_equi_no_bank.tiff", river_LS %>% 
            ggplot(aes(x = `Land use`, y = Concentration2, fill = `Land use`)) +
            geom_boxplot() +
            stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="blue", fill="blue") +
            theme_bw() +
            ylab(bquote("Fluxes (mg."*m^-2*"."*d^-1*")")) +
-           facet_wrap(Bank~Fluxes, scales = "free"
+           facet_wrap(.~Fluxes, scales = "free"
                       , labeller = labeller(Fluxes = label_parsed)) +
-           scale_fill_brewer(palette = "Paired", name = "Land use category")+
+           scale_fill_manual(
+               values = c("blue","green","yellow", "orange","red"), name = "Land use category")+
            theme(text=element_text(size=14),
                  strip.text.x = element_text(size=14),
                  axis.text.x = element_blank(),
@@ -1013,11 +1026,13 @@ ggsave("LS_final_no_CO2_equi.tiff", river_LS %>%
                  legend.title = element_text(size = 14),
                  legend.text = element_text(size = 12),
                  legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20, width = 30, dpi = 300
+       units = 'cm', height = 15, width = 30, dpi = 300
 )
-# sum up
+# sum up LS
 
-
+river_LS_sum <- merge(aggregate(data = river_LS, Concentration ~ `Land use` + Fluxes, FUN =mean), 
+                      aggregate(data = river_LS, Concentration ~ `Land use` + Fluxes, FUN =std.error), 
+                      by = c("Land use", "Fluxes"))
 
 #### Correct_summarise flux in each river ####
 
@@ -1667,7 +1682,7 @@ river_flux_land_2$Bank <- as.factor(river_flux_land_2$Bank)
 
 
 old_lu <- as.character(levels(as.factor(river_flux_land_2$`Land use`)))
-new_lu <- c("Agriculture", "Construction", "Industry", "Nature", "Industry", "Agriculture", "Urban",
+new_lu <- c("Agriculture", "Urban", "Industry", "Nature", "Industry", "Agriculture", "Urban",
             "Nature", "Road", "Urban")
 for (i in 1:nrow(river_flux_land_2)){
     for (j in 1:length(new_lu)){
