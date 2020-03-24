@@ -1,0 +1,13 @@
+name: GHG_Cuenca
+title: GHG_Cuenca
+username:
+account: longho
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1982513
+bundleId: 2913853
+url: https://longho.shinyapps.io/GHG_Cuenca/
+when: 1584983317.68099
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: River_WQI.csv
