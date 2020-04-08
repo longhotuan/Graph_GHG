@@ -641,7 +641,7 @@ ggsave("Fluxes_GWP_Co2_equi.tiff", river_flux_GWP3 %>% ggplot(aes(x = River, y =
            geom_boxplot() +
            stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="red", fill="red") +
            theme_bw()+
-           ylab(bquote("GWP (mg"~CO[2]*"-equivalent."*m^-2*"."*d^-1*")")) +
+           ylab(bquote("GWP (mg"~CO[2]*"-equivalent "*m^-2*" "*d^-1*")")) +
            facet_wrap(.~ Flux_gases, scales = "free", labeller = label_parsed) +
            scale_fill_brewer(palette = "Paired", name = "Tributaries")+
            theme(text=element_text(size=14),
@@ -670,7 +670,7 @@ ggsave("Fluxes_GWP_no_Co2_equi.tiff", river_flux_GWP3 %>%
            geom_boxplot() +
            stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="red", fill="red") +
            theme_bw()+
-           ylab(bquote("Fluxes (mg."*m^-2*"."*d^-1*")")) +
+           ylab(bquote("Fluxes (mg "*m^-2*" "*d^-1*")")) +
            facet_wrap(.~ Flux_gases, scales = "free", labeller = label_parsed) +
            scale_fill_brewer(palette = "Paired", name = "Tributaries")+
            theme(text=element_text(size=14),
@@ -707,7 +707,7 @@ ggsave("Total_fluxes_Co2_equi.tiff", river_sem %>%
            geom_errorbar(aes(ymin= Mean2 - SEM2, ymax=Mean2+SEM2), width=.2,
                          position=position_dodge(.9)) +
            theme_bw() +
-           ylab("Mean of the fluxes (mg"~CO[2]*"-equivalent. "*m^-2*"."*d^-1*")") +
+           ylab("Mean of the fluxes (mg"~CO[2]*"-equivalent "*m^-2*" "*d^-1*")") +
            facet_wrap(.~ Fluxes, scales = "free", labeller = label_parsed) +
            scale_fill_brewer(palette = "Paired")+
            theme(text=element_text(size=14),
@@ -733,7 +733,7 @@ ggsave("Total_fluxes_no_Co2_equi.tiff", river_sem %>%
            geom_errorbar(aes(ymin= Mean - SEM, ymax=Mean+SEM), width=.2,
                          position=position_dodge(.9)) +
            theme_bw() +
-           ylab(bquote("Mean of the fluxes (mg."*m^-2*"."*d^-1*")")) +
+           ylab(bquote("Mean of the fluxes (mg "*m^-2*" "*d^-1*")")) +
            facet_wrap(.~ Fluxes, scales = "free", labeller = label_parsed) +
            scale_fill_brewer(palette = "Paired")+
            theme(text=element_text(size=14),
@@ -768,7 +768,7 @@ ggsave("Total_emission_per_year_Co2_equi.tiff", river_sem %>%
            geom_errorbar(aes(ymin= Mean3 - SEM3, ymax=Mean3+SEM3), width=.2,
                          position=position_dodge(.9)) +
            theme_bw() +
-           ylab("Mean of the total emission per year (Gg"~CO[2]*"-equivalent. "*yr^-1*")") +
+           ylab("Mean of the total emission per year (Gg"~CO[2]*"-equivalent "*yr^-1*")") +
            facet_wrap(.~ Fluxes, scales = "free", labeller = label_parsed) +
            scale_fill_brewer(palette = "Paired")+
            theme(text=element_text(size=14),
@@ -803,7 +803,7 @@ ggsave("Total_emission_per_year_no_Co2_equi.tiff", river_sem %>%
            geom_errorbar(aes(ymin= Mean4 - SEM4, ymax=Mean4+SEM4), width=.2,
                          position=position_dodge(.9)) +
            theme_bw() +
-           ylab(bquote("Mean of the total emission per year (Gg."*yr^-1*")")) +
+           ylab(bquote("Mean of the total emission per year (Gg "*yr^-1*")")) +
            facet_wrap(.~ Fluxes, scales = "free", labeller = label_parsed) +
            scale_fill_brewer(palette = "Paired")+
            theme(text=element_text(size=14),
@@ -817,6 +817,12 @@ ggsave("Total_emission_per_year_no_Co2_equi.tiff", river_sem %>%
                  legend.spacing.x = unit(0.5, 'cm')),
        units = 'cm', height = 15, width = 30, dpi = 300
 )
+
+
+# sum up the perentage --> Not correct as percentage of the mean values not the whole thing
+
+river_sem2 <- river_sem %>% group_by(Fluxes) %>% mutate(Percentage = Mean4*100/ sum(Mean4), Percentage_SEM = SEM4*100/ sum(Mean4))
+
 # sum up the results
 # river_sem: Mean: Flux (no CO2), Mean2: Flux (CO2), Mean 3: per year(CO2), Mean 4: per year(no CO2)
 
@@ -836,6 +842,10 @@ river_sem_sum$Mean3 <- river_sem_sum$Mean2*365*(95.92+111.19+138.98+113.03+113.8
 river_sem_sum$SEM3 <- river_sem_sum$SEM2*365*(95.92+111.19+138.98+113.03+113.81)/1000000 # convert to Gg
 river_sem_sum$Mean4 <- river_sem_sum$Mean*365*(95.92+111.19+138.98+113.03+113.81)/1000000 # convert to Gg
 river_sem_sum$SEM4 <- river_sem_sum$SEM*365*(95.92+111.19+138.98+113.03+113.81)/1000000 # convert to Gg
+
+
+
+
 
 #### Correct_box plot WQ ####
 
@@ -880,7 +890,7 @@ ggsave("WQI_final_CO2_equi.tiff", river_WQI_v2 %>%
            stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="blue", fill="blue") +
            theme_bw() +
            labs(fill = "Prati Index") +
-           ylab("GWP (mg"~CO[2]*"-equivalent. "*m^-2*"."*d^-1*")") +
+           ylab("GWP (mg"~CO[2]*"-equivalent "*m^-2*" "*d^-1*")") +
            facet_wrap(WQI~Fluxes, scales = "free"
                       , labeller = labeller(Fluxes = label_parsed)) +
            
@@ -913,10 +923,10 @@ ggsave("WQI_final_no_CO2_equi.tiff", river_WQI_v2 %>%
                                     levels=  c("Good Quality", "Acceptable Quality",
                                                "Polluted", "Heavily Polluted", "Very Heavily Polluted")))) +
            geom_boxplot() +
-           stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="blue", fill="blue") +
+           stat_summary(fun =mean, geom="point", shape=20, size=5, color="blue", fill="blue") +
            theme_bw() +
            labs(fill = "Prati Index") +
-           ylab(bquote("Fluxes (mg."*m^-2*"."*d^-1*")")) +
+           ylab(bquote("Fluxes (mg "*m^-2*" "*d^-1*")")) +
            facet_wrap(WQI~Fluxes, scales = "free"
                       , labeller = labeller(Fluxes = label_parsed)) +
            scale_fill_manual(values = c("blue","green","yellow","orange","red"), name = "Prati/Oregon Index", 
@@ -981,7 +991,7 @@ ggsave("LS_final_CO2_equi.tiff", river_LS %>%
            geom_boxplot() +
            stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="blue", fill="blue") +
            theme_bw() +
-           ylab("GWP (mg"~CO[2]*"-equivalent. "*m^-2*"."*d^-1*")") +
+           ylab("GWP (mg"~CO[2]*"-equivalent "*m^-2*" "*d^-1*")") +
            facet_wrap(Bank~Fluxes, scales = "free"
                       , labeller = labeller(Fluxes = label_parsed)) +
            scale_fill_brewer(palette = "Paired", name = "Land use category")+
@@ -1012,7 +1022,7 @@ ggsave("LS_final_no_CO2_equi_no_bank.tiff", river_LS %>%
            geom_boxplot() +
            stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="blue", fill="blue") +
            theme_bw() +
-           ylab(bquote("Fluxes (mg."*m^-2*"."*d^-1*")")) +
+           ylab(bquote("Fluxes (mg "*m^-2*" "*d^-1*")")) +
            facet_wrap(.~Fluxes, scales = "free"
                       , labeller = labeller(Fluxes = label_parsed)) +
            scale_fill_manual(
@@ -1041,7 +1051,7 @@ river_flux_each <- river_flux_GWP %>% # mg.m-2.d-1 not CO2 equivalent
     group_by(River) %>% summarise_each(funs = sum) %>%
     mutate_at(vars(`Flux CO2`, `Flux CH4`, `Flux N2O`), funs("percent" = ./sum(.)))
 river_flux_each$Area <- c(95.92, 111.19, 138.98, 113.03, 113.81) # km2
-river_flux_each <- river_flux_each %>% mutate_at(vars(`Flux CO2`, `Flux CH4`, `Flux N2O`), funs("area" = .*365/Area)) # g.year-1
+river_flux_each <- river_flux_each %>% mutate_at(vars(`Flux CO2`, `Flux CH4`, `Flux N2O`), funs("area" = .*365*Area)) # g.year-1
 river_flux_each <- river_flux_each %>% mutate_at(vars(`Flux CO2_area`, `Flux CH4_area`, `Flux N2O_area`), funs("percent" = .*100/ sum(.))) # percentage of area
 
 river_flux_stacked <- river_flux_each[,c(1, 12:14)] %>% pivot_longer(cols = -River, names_to = "GHG", values_to = "Flux_area")
@@ -1049,6 +1059,9 @@ river_flux_stacked$GHG <- as.factor(river_flux_stacked$GHG)
 river_flux_stacked$GHG <- relevel(river_flux_stacked$GHG,"Flux CO2_area_percent")
 river_flux_stacked$GHG <- factor(river_flux_stacked$GHG, 
                                  labels = c(expression("Flux CO"["2"]), expression("Flux CH"["4"]), expression("Flux N"["2"]*"O")))
+
+river_flux_stacked$River <- factor(river_flux_stacked$River,
+                                   levels = c("Machangara", "Yanuncay", "Cuenca", "Tarqui", "Tomebamba"))
 
 ggsave("Per_river_total_emissions.tiff", river_flux_stacked %>% ggplot() +
            geom_bar(aes(y=Flux_area, x=GHG,fill = `River`), stat = 'identity')+
@@ -1069,991 +1082,3 @@ ggsave("Per_river_total_emissions.tiff", river_flux_stacked %>% ggplot() +
                  legend.spacing.x = unit(0.5, 'cm')),
        units = 'cm', height = 20, width = 20, dpi = 300
 )
-
-#############################################WRONG################################
-#### Wrong_Boxplot of not-corrected DG regarding rivers ####
-# 
-# river2 <- cbind(river[,3:5],river[,40:42])
-# 
-# ggsave("Boxplot_river_CO2.tiff", river2 %>% 
-#            ggplot() +
-#            geom_boxplot(aes(x = River, y = Dis_CO2_1)) +
-#            xlab("River") +
-#            ylab("CO2"))
-# 
-# ggsave("Boxplot_river_N2O.tiff", river2 %>% 
-#            ggplot() +
-#            geom_boxplot(aes(x = River, y = Dis_N2O_1)) +
-#            xlab("River") +
-#            ylab("N2O"))
-# 
-# ggsave("Boxplot_river_CH4.tiff", river2 %>% 
-#            ggplot() +
-#            geom_boxplot(aes(x = River, y = Dis_CH4_1)) +
-#            xlab("River") +
-#            ylab("CH4"))
-# 
-# ggsave("Boxplot_river_DG.tiff", river2 %>% gather(key = "Dissolved_gases", value = "Concentration", - Time, - Location, -River) %>% 
-#            ggplot() +
-#            geom_boxplot(aes(x = River, y = Concentration)) +
-#            xlab("River") +
-#            ylab("Dissolved gases (ppm)")+
-#            facet_wrap(.~ as.factor(Dissolved_gases), scales = "free"),
-#        units = 'cm', height = 20, width = 40, dpi = 300
-#        )
-#### Wrong_Boxplot of not-corrected DG in different positions in the river ####
-# 
-# river3 <- cbind(river_dis[,3:5],river_dis[,40:48])
-# river3 <- river3 %>%  gather(key = "Dissolved_gases", value = "Concentration", - Time, - Location, -River)
-# 
-# # Boxplot in different positions 
-# 
-# ggsave("Boxplot_river_position_CO2.tiff", river3 %>% filter(str_detect(Dissolved_gases, "Dis_CO2_1|Dis_CO2_2|Dis_CO2_3")) %>% 
-#            ggplot(aes(x = as.factor(Dissolved_gases), y = Concentration)) +
-#            geom_bar(stat = "identity") +
-#            xlab("Dissolved_gas") +
-#            ylab("CO2 (ppm)") +
-#            facet_wrap(.~Location),
-#        units = 'cm', height = 20, width = 40, dpi = 300)
-# 
-# ggsave("Boxplot_river_position_CH4.tiff", river3 %>% filter(str_detect(Dissolved_gases, "Dis_CH4_1|Dis_CH4_2|Dis_CH4_3")) %>% 
-#            ggplot(aes(x = as.factor(Dissolved_gases), y = Concentration)) +
-#            geom_bar(stat = "identity") +
-#            xlab("Dissolved_gas") +
-#            ylab("CH4 (ppm)") +
-#            facet_wrap(.~Location, scales = "free"),
-#        units = 'cm', height = 20, width = 40, dpi = 300)
-# 
-# ggsave("Boxplot_river_position_N2O.tiff", river3 %>% filter(str_detect(Dissolved_gases, "Dis_N2O_1|Dis_N2O_2|Dis_N2O_3")) %>% 
-#            ggplot(aes(x = as.factor(Dissolved_gases), y = Concentration)) +
-#            geom_bar(stat = "identity") +
-#            xlab("Dissolved_gas") +
-#            ylab("N2O (ppm)") +
-#            facet_wrap(.~Location, scales = "free"),
-#        units = 'cm', height = 20, width = 40, dpi = 300)
-
-#### Wrong_Boxplot of corrected DG regarding rivers ####
-
-river2 <- cbind(river[,3:5],river[,40:42])
-
-colnames(river2)[4:6] <- c("Dissolved N2O", "Dissolved CH4","Dissolved CO2")
-
-
-
-ggsave("Boxplot_river_CO2_cor.tiff", river2 %>% 
-           ggplot() +
-           geom_boxplot(aes(x = River, y = Dis_CO2_cor)) +
-           xlab("River") +
-           ylab("CO2"))
-
-ggsave("Boxplot_river_N2O_cor.tiff", river2 %>% 
-           ggplot() +
-           geom_boxplot(aes(x = River, y = Dis_N2O_cor)) +
-           xlab("River") +
-           ylab("N2O"))
-
-ggsave("Boxplot_river_CH4_cor.tiff", river2 %>% 
-           ggplot() +
-           geom_boxplot(aes(x = River, y = Dis_CH4_cor)) +
-           xlab("River") +
-           ylab("CH4"))
-
-ggsave("Boxplot_river_DG_cor.tiff", river2 %>% gather(key = "Dissolved_gases", value = "Concentration", - Time, - Location, -River) %>% 
-           ggplot() +
-           geom_boxplot(aes(x = River, y = Concentration)) +
-           xlab("River") +
-           ylab(bquote("Dissolved gases ("*mu~'g.'~L^-1*")"))+
-           theme_bw()+
-           facet_wrap(.~ as.factor(Dissolved_gases), scales = "free"),
-       units = 'cm', height = 20, width = 40, dpi = 300
-)
-
-
-#### Wrong_Box plot of GWP regarding rivers ####
-
-river$N2O_GWP <- river$`Dissovled N2O`*265
-river$CH4_GWP <- river$`Dissovled CH4`*28
-river$CO2_GWP <- river$`Dissolved CO2`*1
-
-river5 <- cbind(river[,3:5],river[,43:45])
-river5 <- river5 %>% gather(key = "Dissolved_gases", value = "GWP", - Time, - Location, -River)
-river5$Dissolved_gases <- factor(river5$Dissolved_gases, levels = c('CO2_GWP','CH4_GWP','N2O_GWP'))
-
-ggsave("Boxplot_GWP.tiff", river5 %>% 
-           ggplot() +
-           geom_boxplot(aes(x = River, y = GWP)) +
-           xlab("River") +
-           ylab("GWP (CO2-equivalent)")+
-           facet_wrap(.~ as.factor(Dissolved_gases), scales = "free"),
-       units = 'cm', height = 20, width = 40, dpi = 300
-)
-
-#### Wrong_Stacked plot of GWP regarding rivers #### 
-river6 <- cbind(river[,3:5],river[,43:45]) %>% filter(River == "Cuenca") %>% select(c("N2O_GWP","CH4_GWP","CO2_GWP")) %>% colSums()
-river7 <- transpose(as.data.frame(river6))
-
-for (i in 2:(nlevels(river$River))){
-    river6 <- cbind(river[,3:5],river[,43:45]) %>% filter(River == levels(river$River)[i]) %>% select(c("N2O_GWP","CH4_GWP","CO2_GWP")) %>% colSums()
-    river7 <- rbind(river7,transpose(as.data.frame(river6))) 
-}
-colnames(river7) <- c("N2O_GWP","CH4_GWP","CO2_GWP")
-river7$River <- levels(river$River)
-river7 <- river7 %>% gather(key = "Dissolved_gases", value = "GWP", -River)
-river7$Dissolved_gases <- as.factor(river7$Dissolved_gases)
-ggsave("Stacked_Bar_GWP.tiff", river7 %>% ggplot(aes(x=River, y = GWP, fill = Dissolved_gases)) +
-           geom_bar(stat= 'identity') +
-           xlab("River")+
-           ylab("GWP (CO2-equivalent)") + 
-           guides(fill = guide_legend (title = "Dissolved gases")) + 
-           theme_bw() +
-           scale_fill_manual(values = colors[1:3],
-                             labels= c("CH4", "CO2", "N2O")),
-       units = 'cm', height = 20, width = 20, dpi = 300
-)
-
-#### Wrong_Permutation testing  ####
-# # lack of data --> non parameteric analysis (not sure about the distribution of the data)
-# # --> using Permanova for multivariate comparison for testing the simultaneous response of one or more variables to one or more 
-# # factors in an ANOVA experimental design on the basis of any distance measure, using permutation methods
-# # to accommodate random effects, hierarchical models, mixed models, quantitative covariates, 
-# # repeated measures, unbalanced and/or asymmetrical designs, and, most recently, heterogeneous dispersions among groups.
-# # or Fried.mann for univariate comparison repeated measures with block effects to avoid dependent samples.
-# # Test the multivariate homogeneity of groups dispersions
-# 
-# mod <- betadisper(daisy(GHGes, metric = "euclidean", stand = TRUE), group = river$River) # using betadisper is a multivariate analogue of Levene's test for homogeneity of variances.
-# permutest(mod)
-# anova(mod)
-# plot(mod, hull=FALSE, ellipse=TRUE)
-# boxplot(mod)
-# 
-# # p value > 0.05 --> homogeneity of multivariate dispersions. 
-# # PERMANOVA (likeANOVA) is very robust to heterogeneity for balanced designs but not unbalanced designs. 
-# # Fortunately, in this case, it is homoegenous 
-# 
-# # using Permanova anyway
-# 
-# pairwise.adonis <- function(x,factors, sim.function = 'vegdist', sim.method = 'euclidean', p.adjust.m ='bonferroni'){
-#     library(vegan)
-#     
-#     co = combn(unique(as.character(factors)),2)
-#     pairs = c()
-#     F.Model =c()
-#     R2 = c()
-#     p.value = c()
-#     
-#     for(elem in 1:ncol(co)){
-#         if(sim.function == 'daisy'){
-#             library(cluster)
-#             x1 = daisy(x[factors %in% c(co[1,elem],co[2,elem]),],metric=sim.method)
-#         } else {
-#             x1 = vegdist(x[factors %in% c(co[1,elem],co[2,elem]),],method=sim.method)
-#         }
-#         
-#         ad = adonis(x1 ~ factors[factors %in% c(co[1,elem],co[2,elem])] );
-#         pairs = c(pairs,paste(co[1,elem],'vs',co[2,elem]));
-#         F.Model =c(F.Model,ad$aov.tab[1,4]);
-#         R2 = c(R2,ad$aov.tab[1,5]);
-#         p.value = c(p.value,ad$aov.tab[1,6])
-#     }
-#     
-#     p.adjusted = p.adjust(p.value,method=p.adjust.m)
-#     sig = c(rep('',length(p.adjusted)))
-#     sig[p.adjusted <= 0.05] <-'.'
-#     sig[p.adjusted <= 0.01] <-'*'
-#     sig[p.adjusted <= 0.001] <-'**'
-#     sig[p.adjusted <= 0.0001] <-'***'
-#     
-#     pairw.res = data.frame(pairs,F.Model,R2,p.value,p.adjusted,sig)
-#     print("Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1")
-#     return(pairw.res)
-#     
-# } 
-# 
-# GHGes <- river[,46:48]
-# GHGes_dis_matrix <- daisy(GHGes, metric = "euclidean", stand = TRUE)
-# 
-# set.seed(2805)
-# 
-# permanova_river_phys <- adonis(GHGes_dis_matrix ~ T_w + DO + pH + EC+ Sal + Turb + Chlr, 
-#                                data = river, permutations = 999, 
-#                                method = "euclidean", strata = river$River)
-# summary(permanova_river_phys)
-# permanova_river_phys
-# permanova_river_phys$aov.tab[,6] 
-# 
-# pairwise.adonis(river[,6:13], river$River) #  physical
-# 
-# 
-# # more about the 
-# 
-
-#### Wrong_WQI per river ####
-
-river_WQI <- read_csv("River_WQI.csv")
-river_WQI$Prati_WQI_1 <- as.factor(river_WQI$Prati_WQI_1)
-river_WQI$Prati_WQI_2 <- as.factor(river_WQI$Prati_WQI_2)
-river_WQI$`OWQI-2`<-as.factor(river_WQI$`OWQI-2`)
-
-# Concentration (13/03)
-
-river4 <- cbind(river_WQI[,5],river_WQI[,37:39], river_WQI[,43:47])
-colnames(river4)[2:4] <- c("Dissolved N2O", "Dissolved CH4","Dissolved CO2")
-river4 <- river4 %>% gather(key = "Dissolved_gases", value = "Concentration", 
-                            -River, -Prati_INDEX_1,- Prati_WQI_1,- Prati_INDEX_2, -Prati_WQI_2, -`OWQI-2`)
-
-river_GWP2_CO2 <- river4 %>% filter(Dissolved_gases == "Dissolved CO2") %>% select(Concentration)*1
-river_GWP2_CH4 <- river4 %>% filter(Dissolved_gases == "Dissolved CH4") %>% select(Concentration)*28
-river_GWP2_N2O <- river4 %>% filter(Dissolved_gases == "Dissolved N2O") %>% select(Concentration)*265
-
-river_GWP2 <- bind_rows(river_GWP2_N2O, river_GWP2_CH4, river_GWP2_CO2)
-
-river4$GWP <- as.numeric(unlist(river_GWP2))
-river4$Dissolved_gases <- as.factor(river4$Dissolved_gases)
-
-
-river4$Dissolved_gases <- relevel(river4$Dissolved_gases,"Dissolved CO2")
-river4$Dissolved_gases <- factor(river4$Dissolved_gases, 
-                                 labels = c(expression("Dissolved CO"["2"]), expression("Dissolved CH"["4"]), expression("Dissolved N"["2"]*"O")))
-for(i in c(1,3,5,6)){
-    river4[,i] <- as.factor(river4[,i])
-}
-
-river4$Prati_WQI_1 <- ordered(river4$Prati_WQI_1, labels= c("Good Quality", "Acceptable Quality","Polluted",
-                                                            "Heavily Polluted", "Very Heavily Polluted"))
-river4$Prati_WQI_2 <- ordered(river4$Prati_WQI_2, labels= c("Good Quality", "Acceptable Quality","Polluted",
-                                                            "Heavily Polluted", "Very Heavily Polluted"))
-river4$`OWQI-2` <- relevel(river4$`OWQI-2`, "Good")
-
-ggsave("Boxplot_river_PWQI_GWP.tiff", river4 %>% ggplot() +
-           geom_boxplot(aes(x = Prati_WQI_1, y = GWP, fill = Prati_WQI_1)) +
-           # xlab("River") +
-           ylab(bquote("GWP ("~CO[2]~"-equivalent )"))+
-           theme_bw()+
-           scale_fill_manual(values = c("blue","green","yellow","orange","red"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_blank(),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm'))+
-           facet_wrap(.~ Dissolved_gases, scales = "free", labeller = label_parsed), 
-       units = 'cm', height = 20/1.1, width = 40/1.1, dpi = 300
-)
-
-ggsave("Boxplot_river_WQI_GWP_2.tiff", river4 %>% ggplot() +
-           geom_boxplot(aes(x = Prati_WQI_2, y = GWP, fill = Prati_WQI_2)) +
-           # xlab("River") +
-           ylab(bquote("GWP ("~CO[2]~"-equivalent)"))+
-           theme_bw()+
-           scale_fill_manual(values = c("blue","green","yellow","orange","red"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_blank(),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm'))+
-           facet_wrap(.~ Dissolved_gases, scales = "free", labeller = label_parsed), 
-       units = 'cm', height = 20, width = 40, dpi = 300
-)
-
-ggsave("Boxplot_river_OWQI_GWP.tiff", river4 %>% ggplot() +
-           geom_boxplot(aes(x = river4$`OWQI-2`, y = GWP, fill = river4$`OWQI-2`),
-                        # outlier.shape = NA
-           ) +
-           # xlab("River") +
-           ylab(bquote("GWP ("~CO[2]~"-equivalent )"))+
-           theme_bw()+
-           scale_fill_manual(values = c("blue","green","yellow","orange","red"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_blank(),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm'))+
-           # scale_y_continuous(limits = quantile(river4$Concentration, c(0.1, 0.9)))+
-           facet_wrap(.~ Dissolved_gases, scales = "free", labeller = label_parsed), 
-       units = 'cm', height = 20/1.1, width = 40/1.1, dpi = 300
-)
-
-#### Wrong_stacked bar WQ ####
-
-river4_per_Prati <- river4 %>% select(Prati_WQI_1, `OWQI-2`, `Dissolved_gases`, GWP)
-
-river4_per_Prati$Prati_WQI_1 <- as.character(river4_per_Prati$Prati_WQI_1)
-river4_per_Prati$Prati_WQI_1 <- str_replace_all(river4_per_Prati$Prati_WQI_1, "Very Heavily Polluted", "Heavily Polluted")
-# river4_per_Prati$Prati_WQI_1 <- ordered(river4_per_Prati$Prati_WQI_1, 
-#                                         labels= c("Good Quality", "Acceptable Quality",
-#                                                   "Polluted", "Heavily Polluted"))
-river4_per_Prati$`OWQI-2` <- as.character(river4_per_Prati$`OWQI-2`)
-old_Ore <- c("Good","Fair", "Very Poor", "Poor")
-new_Ore <- c("Good Quality", "Acceptable Quality", "Heavily Polluted", "Polluted")
-
-for (i in 1:nrow(river4_per_Prati)){
-    for (j in 1:length(new_Ore)){
-        river4_per_Prati$`OWQI-2`[i] <- str_replace_all(river4_per_Prati$`OWQI-2`[i], old_Ore[j], new_Ore[j])
-    }
-}
-
-
-colnames(river4_per_Prati) <- c("Prati Index", "Oregon Index", "Dissolved Gases", "Concentration")
-
-river4_per_Prati <- river4_per_Prati %>% gather(key = "WQI", value = "Water Quality", - `Dissolved Gases`, - Concentration)
-
-
-river4_per_Prati <- river4_per_Prati %>% group_by(`Dissolved Gases`, WQI, `Water Quality`) %>% 
-    summarise(Concentration2 = sum(Concentration)) %>% 
-    mutate(Percentage = Concentration2*100/sum(Concentration2))
-
-river4_per_Prati$`Dissolved Gases` <- as.factor(river4_per_Prati$`Dissolved Gases`)
-river4_per_Prati$WQI <- as.factor(river4_per_Prati$WQI)
-river4_per_Prati$`Water Quality` <- as.factor(river4_per_Prati$`Water Quality`)
-# river4_per_Prati$WQI <-ordered(river4_per_Prati$WQI,labels= c("Prati Index", "Oregon Index"))
-river4_per_Prati$`Water Quality` <-ordered(river4_per_Prati$`Water Quality`,
-                                           labels= c("Good Quality", "Acceptable Quality",
-                                                     "Polluted", "Heavily Polluted", "Very Heavily Polluted"))
-
-river4_2 <- river_WQI[,c(5, 44, 47:50)] 
-river4_2$F_CH4 <- river4_2$F_CH4*28
-river4_2$F_N2O <- river4_2$F_N2O*265
-river4_2 <- river4_2 %>% pivot_longer(c(-River,-Prati_WQI_1, -`OWQI-2`), names_to = "Fluxes", values_to = "Concentration")
-river4_2$Fluxes <- as_factor(river4_2$Fluxes)
-river4_2 <- river4_2[,-1]
-river4_2$`OWQI-2` <- as.character(river4_2$`OWQI-2`)
-
-for (i in 1:nrow(river4_2)){
-    for (j in 1:length(new_Ore)){
-        river4_2$`OWQI-2`[i] <- str_replace_all(river4_2$`OWQI-2`[i], old_Ore[j], new_Ore[j])
-    }
-}
-
-
-colnames(river4_2) <- c("Prati Index", "Oregon Index", "Fluxes", "Concentration")
-
-river4_2 <- river4_2 %>% gather(key = "WQI", value = "Water Quality", - `Fluxes`, - Concentration)
-
-
-river4_3 <- river4_2 %>% group_by(WQI, `Water Quality`, `Fluxes`) %>% 
-    summarise(Concentration2 = sum(Concentration))
-river4_3 <- river4_3 %>% group_by(WQI, `Fluxes`) %>% 
-    mutate(Percentage = Concentration2*100/sum(Concentration2))
-
-river4_3$`Fluxes` <- as.factor(river4_3$`Fluxes`)
-river4_3$WQI <- as.factor(river4_3$WQI)
-river4_3$`Water Quality` <- as.factor(river4_3$`Water Quality`)
-river4_3$`Water Quality` <-ordered(river4_3$`Water Quality`,
-                                   labels= c("Good Quality", "Acceptable Quality",
-                                             "Polluted", "Heavily Polluted", "Very Heavily Polluted"))
-river4_4 <- river4_2 %>% group_by( WQI, `Water Quality`, `Fluxes`) %>% 
-    summarise(Concentration2 = mean(Concentration)) 
-river4_4 <- river4_4 %>% group_by(WQI, `Fluxes`) %>% 
-    mutate(Percentage = Concentration2*100/sum(Concentration2))
-
-river4_4$`Fluxes` <- as.factor(river4_4$`Fluxes`)
-river4_4$WQI <- as.factor(river4_4$WQI)
-river4_4$`Water Quality` <- as.factor(river4_4$`Water Quality`)
-river4_4$`Water Quality` <-ordered(river4_4$`Water Quality`,
-                                   labels= c("Good Quality", "Acceptable Quality",
-                                             "Polluted", "Heavily Polluted", "Very Heavily Polluted"))
-
-river4_4$Fluxes <- factor(river4_4$Fluxes, 
-                          labels = c(expression("CO"["2"]), expression("CH"["4"]), 
-                                     expression("N"["2"]*"O")))
-
-ggsave("Per_river_WQI.tiff", river4_per_Prati %>% 
-           ggplot(aes(y=Percentage, x=`Dissolved Gases`,
-                      fill = factor(`Water Quality`, 
-                                    levels=  c("Good Quality", "Acceptable Quality",
-                                               "Polluted", "Heavily Polluted", "Very Heavily Polluted")))) +
-           geom_bar(stat = 'identity') +
-           theme_bw() +
-           labs(fill = "Prati Index") +
-           ylab("Percentage of the GHG concentration (%)") +
-           facet_grid(.~WQI) +
-           scale_fill_manual(values = c("blue","green","yellow","orange","red"))+
-           scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]*"O")))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 14),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_text(size=14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20, width = 30, dpi = 300
-)
-
-river4_per_Oreg <- river4_per_Prati
-river4_per_Oreg$`Water Quality` <-ordered(river4_per_Oreg$`Water Quality`,
-                                          labels= c("Good ", "Fair",
-                                                    "Poor", "Very Poor", "Very Heavily Polluted"))
-
-
-ggsave("Oregon_river_WQI.tiff", river4_per_Oreg %>% 
-           ggplot(aes(y=Percentage, x=`Dissolved Gases`,
-                      fill = factor(`Water Quality`, 
-                                    levels=  c("Good ", "Fair",
-                                               "Poor", "Very Poor", "Very Heavily Polluted")))) +
-           geom_bar(stat = 'identity') +
-           theme_bw() +
-           labs(fill = "Oregon Index") +
-           ylab("Percentage of the GHG concentration (%)") +
-           facet_grid(.~WQI) +
-           scale_fill_manual(values = c("blue","green","yellow","orange","red"))+
-           scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]~"O")))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 14),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_text(size=14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20, width = 30, dpi = 300
-)    
-
-# Flux (13/03)
-
-
-ggsave("Per_river_WQI_v2.tiff", river4_3 %>% 
-           ggplot(aes(y=Percentage, x=`Fluxes`,
-                      fill = factor(`Water Quality`, 
-                                    levels=  c("Good Quality", "Acceptable Quality",
-                                               "Polluted", "Heavily Polluted", "Very Heavily Polluted")))) +
-           geom_bar(stat = 'identity') +
-           theme_bw() +
-           labs(fill = "Prati Index") +
-           ylab("Fraction of the fluxes (%)") +
-           facet_grid(.~WQI) +
-           scale_fill_manual(values = c("blue","green","yellow","orange","red"))+
-           scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]*"O")))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 14),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_text(size=14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20, width = 30, dpi = 300
-)
-
-# Rate 15/03 - The rate should not be in percentage 
-
-
-
-ggsave("Per_river_Prati_v2.tiff", river4_4 %>% filter(WQI == "Prati Index") %>% 
-           ggplot(aes(y=Concentration2, x=`Water Quality`,
-                      fill = factor(`Water Quality`, 
-                                    levels=  c("Good Quality", "Acceptable Quality",
-                                               "Polluted", "Heavily Polluted", "Very Heavily Polluted")))) +
-           geom_bar(position="dodge", stat = 'identity') +
-           theme_bw() +
-           labs(fill = "Prati Index") +
-           ylab("Mean of the fluxes (mg"~CO[2]*"-equivalent. "*m^-2*"."*d^-1*")") +
-           facet_wrap(.~Fluxes, scales = "free", labeller = label_parsed) +
-           scale_fill_manual(values = c("blue","green","yellow","orange","red"), name = "Prati/Oregon Index", 
-                             labels = c("Good Quality/Good", "Acceptable Quality/Fair",
-                                        "Polluted/Poor", "Heavily Polluted/Very Poor", "Very Heavily Polluted/NA") )+
-           # scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]*"O")))+
-           theme(text=element_text(size=14),
-                 strip.text.x =element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position = "right",
-                 legend.title = element_text(size = 14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 10, width = 30, dpi = 300
-)
-
-ggsave("Per_river_Oregon_v2.tiff", river4_4 %>% filter(WQI == "Oregon Index") %>% 
-           ggplot(aes(y=Concentration2, x=`Water Quality`,
-                      fill = factor(`Water Quality`, 
-                                    levels=  c("Good Quality", "Acceptable Quality",
-                                               "Polluted", "Heavily Polluted", "Very Heavily Polluted")))) +
-           geom_bar(position="dodge", stat = 'identity') +
-           theme_bw() +
-           labs(fill = "Oregon Index") +
-           ylab("Mean of the fluxes (mg"~CO[2]*"-equivalent. "*m^-2*"."*d^-1*")") +
-           facet_wrap(.~Fluxes, scales = "free", labeller = label_parsed) +
-           scale_fill_manual(values = c("blue","green","yellow","orange","red"), name = "Prati/Oregon Index", 
-                             labels = c("Good Quality/Good", "Acceptable Quality/Fair",
-                                        "Polluted/Poor", "Heavily Polluted/Very Poor", "Very Heavily Polluted/NA")) +
-           # scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]*"O")))+
-           theme(text=element_text(size=14),
-                 strip.text.x =element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position = "right",
-                 legend.title = element_text(size = 14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 10, width = 30, dpi = 300
-)
-
-river_flux_land_4 %>% ggplot(aes(x = `Land use`, y = Concentration2, fill = `Land use`)) +
-    geom_bar(position="dodge", stat = 'identity') +
-    ylab(bquote("Mean of the fluxes per land use category (mg"~CO[2]*"-equivalent. "*m^-2*"."*d^-1*")")) +
-    facet_wrap(Bank ~ Fluxes, scales = "free"
-               , labeller = labeller(Fluxes = label_parsed)
-    )+
-#### Wrong_Land-use per river ####
-river_flux <- read_csv("River.csv")
-
-river_flux$Date <- as.factor(river_flux$Date)
-river_flux$Location <- as.factor(river_flux$Location)
-river_flux$River <- as.factor(river_flux$River)
-river_flux$LB <- as.factor(river_flux$LB)
-river_flux$RB <- as.factor(river_flux$RB)
-river_flux$Shading <- as.factor(river_flux$Shading)
-river_flux$Erosion <- as.factor(river_flux$Erosion)
-river_flux$Flow_variation <- as.factor(river_flux$Flow_variation)
-
-# change the colnames
-
-colnames(river_flux)[6:41] <- c("Water temperature", "pH", "DO", "EC", "TDS", "Salinity", "Turbility", "Chlorophyll", "Left Bank", 
-                                "Right Bank", "Shading", "Erosion", "Flow variability", "Average depth", "Average velocity",
-                                "Pool Class", "BOD", "COD", "TN" ,"NH4", "NO2", "NO3", "TP", "PO4", "Air temperature", "Wind velocity",
-                                "Rain", "Solar radiation", "Latitude", "Longitude", "Dissolved N2O", "Dissolved CH4", "Dissolved CO2",
-                                "Flux CO2", "Flux CH4", "Flux N2O")
-# boxplot flux vs land use
-
-river_flux_land <- cbind(river_flux[,5], river_flux[,14:15], river_flux[,39:41])
-river_flux_land <- river_flux_land %>% gather(key = "Fluxes", value = "Concentration", 
-                                              -River, -`Left Bank`,-`Right Bank`)
-river_flux_land$Fluxes <- as.factor(river_flux_land$Fluxes)
-river_flux_land$Fluxes <- relevel(river_flux_land$Fluxes,"Flux CO2")
-river_flux_land$Fluxes <- factor(river_flux_land$Fluxes, 
-                                 labels = c(expression("CO"["2"]), expression("CH"["4"]), expression("N"["2"]*"O")))
-
-ggsave("Boxplot_river_Flux_LB.tiff", river_flux_land %>% ggplot() +
-           geom_boxplot(aes(x = `Left Bank`, y = Concentration, fill = `Left Bank`)) +
-           ylab(bquote("Fluxes ("*~mu~"mol."~m^{-2}~"."~d^{-1}~")"))+
-           facet_wrap(.~ Fluxes, scales = "free", labeller = label_parsed)+
-           theme_bw()+
-           scale_fill_brewer(palette = "Paired")+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_blank(),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')), 
-       units = 'cm', height = 20/1.1, width = 40/1.1, dpi = 300
-)
-
-
-ggsave("Boxplot_river_Flux_RB.tiff", river_flux_land %>% ggplot() +
-           geom_boxplot(aes(x = `Right Bank`, y = Concentration, fill = `Right Bank`)) +
-           ylab(bquote("Fluxes ("*~mu~"mol."~m^{-2}~"."~d^{-1}~")"))+
-           facet_wrap(.~ Fluxes, scales = "free", labeller = label_parsed)+
-           theme_bw()+
-           scale_fill_brewer(palette = "Paired")+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_blank(),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')), 
-       units = 'cm', height = 20/1.1, width = 40/1.1, dpi = 300
-)
-
-river_flux_land_2 <- river_flux_land[,-1] %>% gather(key = "Bank", value = "Land use", - Fluxes, - Concentration)
-river_flux_land_2$Bank <- as.factor(river_flux_land_2$Bank)
-
-
-old_lu <- as.character(levels(as.factor(river_flux_land_2$`Land use`)))
-new_lu <- c("Agriculture", "Urban", "Industry", "Nature", "Industry", "Agriculture", "Urban",
-            "Nature", "Road", "Urban")
-for (i in 1:nrow(river_flux_land_2)){
-    for (j in 1:length(new_lu)){
-        river_flux_land_2$`Land use`[i] <- str_replace_all(river_flux_land_2$`Land use`[i], old_lu[j], new_lu[j])
-    }
-}
-river_flux_land_2$`Land use` <- as.factor(river_flux_land_2$`Land use`)
-
-ggsave("Boxplot_river_Flux_BB.tiff", river_flux_land_2 %>% ggplot() +
-           geom_boxplot(aes(x = `Land use`, y = Concentration, fill = `Land use`)) +
-           ylab(bquote("Fluxes ("*~mu~"mol."~m^{-2}~"."~d^{-1}~")"))+
-           facet_wrap(Bank ~ Fluxes, scales = "free"
-                      , labeller = labeller(Fluxes = label_parsed)
-           )+
-           theme_bw()+
-           scale_fill_brewer(palette = "Paired")+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_blank(),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')), 
-       units = 'cm', height = 20/1.1, width = 30/1.1, dpi = 300
-)
-
-# bar chart showing percentage
-
-river_flux_land_3 <- river_flux_land_2 %>% group_by(Bank, `Land use`, Fluxes) %>% 
-    summarise(Concentration2 = sum(Concentration))
-river_flux_land_3 <- river_flux_land_3 %>% group_by(Bank, Fluxes) %>%     
-    mutate(Percentage = Concentration2*100/sum(Concentration2))
-
-
-ggsave("Per_river_Flux_BB_v2.tiff", river_flux_land_3 %>% ggplot() +
-           geom_bar(aes(y=Percentage, x=Fluxes,fill = `Land use`), stat = 'identity')+
-           theme_bw() +
-           # xlab("Year") +
-           ylab("Fraction of the fluxes (%)") +
-           facet_grid(.~Bank) +
-           scale_fill_brewer(palette = "Paired") +
-           scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]*"O")))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 14),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_text(size=14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20, width = 30, dpi = 300
-)
-
-
-#### Wrong_stacked bar land-use ####
-
-
-river_conc_land <- cbind(river_flux[,5], river_flux[,14:15], river_flux[,36:38])
-river_conc_land <- river_conc_land %>% gather(key = "DG", value = "Concentration", 
-                                              -River, -`Left Bank`,-`Right Bank`)
-river_conc_land$DG <- as.factor(river_conc_land$DG)
-river_conc_land$DG <- relevel(river_conc_land$DG,"Dissolved CO2")
-river_conc_land$DG <- factor(river_conc_land$DG, 
-                             labels = c(expression("Dissolved CO"["2"]), expression("Dissolved CH"["4"]), 
-                                        expression("Dissolved N"["2"]*"O")))
-
-river_conc_land_2 <- river_conc_land[,-1] %>% gather(key = "Bank", value = "Land use", - DG, - Concentration)
-river_conc_land_2$Bank <- as.factor(river_conc_land_2$Bank)
-
-
-old_lu <- as.character(levels(as.factor(river_conc_land_2$`Land use`)))
-new_lu <- c("Agriculture", "Construction", "Industry", "Nature", "Industry", "Agriculture", "Urban",
-            "Nature", "Road", "Urban")
-for (i in 1:nrow(river_conc_land_2)){
-    for (j in 1:length(new_lu)){
-        river_conc_land_2$`Land use`[i] <- str_replace_all(river_conc_land_2$`Land use`[i], old_lu[j], new_lu[j])
-    }
-}
-river_conc_land_2$`Land use` <- as.factor(river_conc_land_2$`Land use`)
-
-river_conc_land_3 <- river_conc_land_2 %>% group_by(DG, Bank, `Land use`) %>% 
-    summarise(Concentration2 = sum(Concentration)) %>% 
-    mutate(Percentage = Concentration2*100/sum(Concentration2))
-
-
-ggsave("Per_river_Conc_BB.tiff", river_conc_land_3 %>% ggplot() +
-           geom_bar(aes(y=Percentage, x=DG, fill = `Land use`), stat = 'identity')+
-           theme_bw() +
-           # xlab("Year") +
-           ylab("Percentage of the GHG concentration (%)") +
-           facet_grid(.~Bank) +
-           scale_fill_brewer(palette = "Paired") +
-           scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]*"O")))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 14),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="bottom",
-                 legend.title = element_text(size=14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20, width = 30, dpi = 300
-)
-
-summary(river_flux_land$`Right Bank`)/sum(summary(river_flux_land$`Right Bank`))
-summary(river_flux_land$`Left Bank`)/sum(summary(river_flux_land$`Left Bank`))
-
-#### Wrong_Area plot from source to Mouth ####
-
-river_SM <- read_csv("River.csv")
-
-river_SM$Date <- as.factor(river_SM$Date)
-river_SM$Location <- as.factor(river_SM$Location)
-river_SM$River <- as.factor(river_SM$River)
-river_SM$LB <- as.factor(river_SM$LB)
-river_SM$RB <- as.factor(river_SM$RB)
-river_SM$Shading <- as.factor(river_SM$Shading)
-river_SM$Erosion <- as.factor(river_SM$Erosion)
-river_SM$Flow_variation <- as.factor(river_SM$Flow_variation)
-
-# change the colnames
-
-colnames(river_SM)[6:41] <- c("Water temperature", "pH", "DO", "EC", "TDS", "Salinity", "Turbility", "Chlorophyll", "Left Bank", 
-                              "Right Bank", "Shading", "Erosion", "Flow variability", "Average depth", "Average velocity",
-                              "Pool Class", "BOD", "COD", "TN" ,"NH4", "NO2", "NO3", "TP", "PO4", "Air temperature", "Wind velocity",
-                              "Rain", "Solar radiation", "Latitude", "Longitude", "Dissolved N2O", "Dissolved CH4", "Dissolved CO2",
-                              "Flux CO2", "Flux CH4", "Flux N2O")
-
-# Using fluxes
-river_SM2 <- river_SM[,c(5, 39:42)] 
-
-# lump all rivers
-
-river_SM2 <- river_SM2 %>% gather(key = "Fluxes", value = "Concentration", -River, -Distance)
-# river_SM$Distance <- as.factor(river_SM$Distance)
-river_SM2$Fluxes <- as.factor(river_SM2$Fluxes)
-river_SM2 <- river_SM2 %>% 
-    group_by(River, Fluxes, Distance) %>% 
-    summarise(Concentration2 = sum(Concentration)) 
-# river_SM2$Distance <- as.numeric(river_SM2$Distance)
-
-ggsave("River_Flux_SM.tiff", river_SM2 %>% ggplot() +
-           geom_area(aes(y=Concentration2, x=Distance,fill = `Fluxes`),
-                     colour="black", size=.2, alpha=.8)+
-           theme_bw() +
-           xlab("Distance from the source (km)") +
-           ylab(bquote("Fluxes ("*~mu~"mol."~m^{-2}~"."~d^{-1}~")"))+
-           facet_grid(.~River, scales = "free") +
-           scale_fill_manual(labels =c(bquote("CH"[4]), bquote("CO"[2]), bquote("N"[2]*"O")),
-                             values=c("#1B9E77", "#D95F02", "#7570B3"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 11),
-                 # axis.ticks.x = element_blank(),
-                 # axis.title.x = element_blank(),
-                 # legend.position="bottom",
-                 legend.title = element_text(size=14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20/1.2, width = 40/1.2, dpi = 300
-)
-
-# Using fluxes in mg.m-2.d-1
-
-river_SM3 <- river_flux_GWP[,c(5, 42:45)]
-
-river_SM3$Distance[river_SM3$River == "Cuenca"] <- river_SM3$Distance[river_SM3$River == "Cuenca"] - 17.33
-
-# lump all rivers
-
-river_SM3 <- river_SM3 %>% gather(key = "Greenhouse gases", value = "Concentration", -River, -Distance)
-river_SM3$Fluxes <- as.factor(river_SM3$`Greenhouse gases`)
-river_SM3 <- river_SM3 %>% 
-    group_by(River, `Greenhouse gases`, Distance) %>% 
-    summarise(Concentration2 = sum(Concentration)) 
-
-ggsave("River_Flux_SM.tiff", river_SM3 %>% ggplot() +
-           geom_area(aes(y=Concentration2, x=Distance,fill = `Greenhouse gases`),
-                     colour="black", size=.2, alpha=.8)+
-           theme_bw() +
-           xlab("Distance from the source (km)") +
-           ylab(bquote("Fluxes (mg."~m^{-2}*"."~d^{-1}*")"))+
-           facet_grid(.~River, scales = "free") +
-           scale_fill_manual(labels =c(bquote("CH"[4]), bquote("CO"[2]), bquote("N"[2]*"O")),
-                             values=c("#1B9E77", "#D95F02", "#7570B3"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 11),
-                 # axis.ticks.x = element_blank(),
-                 # axis.title.x = element_blank(),
-                 # legend.position="bottom",
-                 legend.title = element_blank(),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20/1.2, width = 40/1.2, dpi = 300
-)
-
-# using DG with GWP
-
-river_SM_DG <- river_SM[,c(5, 36:38, 42)] 
-river_SM_DG$`Dissolved CH4` <- river_SM_DG$`Dissolved CH4`*28
-river_SM_DG$`Dissolved N2O` <- river_SM_DG$`Dissolved N2O`*265
-
-
-river_SM_DG <- river_SM_DG %>% gather(key = "Dissolved Gases", value = "Concentration", -River, -Distance)
-# river_SM$Distance <- as.factor(river_SM$Distance)
-river_SM_DG$`Dissolved Gases` <- as.factor(river_SM_DG$`Dissolved Gases`)
-river_SM_DG <- river_SM_DG %>% 
-    group_by(River, `Dissolved Gases`, Distance) %>% 
-    summarise(Concentration2 = sum(Concentration)) 
-# river_SM_DG$Distance <- as.numeric(river_SM_DG$Distance)
-
-ggsave("River_DG_SM.tiff", river_SM_DG %>% ggplot() +
-           geom_area(aes(y=Concentration2, x=Distance, fill = `Dissolved Gases`),
-                     colour="black", size=.2, alpha=.8)+
-           theme_bw() +
-           xlab("Distance from the source (km)") +
-           ylab(bquote("GWP ("~CO[2]~"-equivalent )"))+
-           facet_grid(.~River, scales = "free") +
-           scale_fill_manual(labels =c(bquote("CH"[4]), bquote("CO"[2]), bquote("N"[2]*"O")),
-                             values=c("#1B9E77", "#D95F02", "#7570B3"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 11),
-                 # axis.ticks.x = element_blank(),
-                 # axis.title.x = element_blank(),
-                 # legend.position="bottom",
-                 legend.title = element_text(size=14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20/1.2, width = 40/1.2, dpi = 300
-)
-
-# using Nutrient 
-
-river_SM_NU <- river_SM[,c(5, 24:29, 42)] 
-river_SM_NU <- river_SM_NU %>% gather(key = "Nutrients", value = "Concentration", -River, -Distance)
-# river_SM$Distance <- as.factor(river_SM$Distance)
-river_SM_NU$`Nutrients` <- as.factor(river_SM_NU$`Nutrients`)
-river_SM_NU <- river_SM_NU %>% 
-    group_by(River, `Nutrients`, Distance) %>% 
-    summarise(Concentration2 = sum(Concentration)) 
-# river_SM_NU$Distance <- as.numeric(river_SM_NU$Distance)
-
-ggsave("River_NU_SM.tiff", river_SM_NU %>% ggplot() +
-           geom_area(aes(y=Concentration2, x=Distance, fill = `Nutrients`),
-                     colour="black", size=.2, alpha=.8)+
-           theme_bw() +
-           xlab("Distance from the source (km)") +
-           ylab(bquote("Concentration ("~mg.L^{-1}~")"))+
-           facet_grid(.~River, scales = "free") +
-           scale_fill_manual(labels =c(bquote("NH"[4]), bquote("NO"[2]), bquote("NO"[2]), 
-                                       bquote("PO"[4]), "TN", "TP"),
-                             values=c("#1B9E77", "#D95F02", "#7570B3","#E7298A", "#66A61E", "#E6AB02"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 11),
-                 # axis.ticks.x = element_blank(),
-                 # axis.title.x = element_blank(),
-                 # legend.position="bottom",
-                 legend.title = element_text(size=14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20/1.2, width = 40/1.2, dpi = 300
-)
-
-# using Nutrient and oxygen
-
-river_SM_NU_2 <- river_SM[,c(5, 8, 24:29, 42)] 
-
-river_SM_NU_2$Distance[river_SM_NU_2$River == "Cuenca"] <- river_SM_NU_2$Distance[river_SM_NU_2$River == "Cuenca"] -17.33
-
-river_SM_NU_2 <- river_SM_NU_2[-c(1:4,10,18),]
-river_SM_NU_2 <- river_SM_NU_2 %>% gather(key = "Nutrients", value = "Concentration", -River, -Distance)
-# river_SM$Distance <- as.factor(river_SM$Distance)
-river_SM_NU_2$`Nutrients` <- as.factor(river_SM_NU_2$`Nutrients`)
-river_SM_NU_2 <- river_SM_NU_2 %>% 
-    group_by(River, `Nutrients`, Distance) %>% 
-    summarise(Concentration2 = sum(Concentration)) 
-# river_SM_NU_2$Distance <- as.numeric(river_SM_NU_2$Distance)
-
-ggsave("River_NU_SM_2.tiff", river_SM_NU_2 %>% ggplot() +
-           geom_area(aes(y=Concentration2, x=Distance, fill = `Nutrients`),
-                     colour="black", size=.2, alpha=.8)+
-           theme_bw() +
-           xlab("Distance from the source (km)") +
-           ylab(bquote("Concentration ("*mg.L^{-1}*")"))+
-           facet_grid(.~River, scales = "free") +
-           scale_fill_manual(labels =c(bquote("O"[2]) , bquote("NH"[4]), bquote("NO"[2]), bquote("NO"[2]), 
-                                       bquote("PO"[4]), "TN", "TP"),
-                             values=c("#666666", "#1B9E77", "#D95F02", "#7570B3","#E7298A", "#66A61E", "#E6AB02"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 11),
-                 # axis.ticks.x = element_blank(),
-                 # axis.title.x = element_blank(),
-                 # legend.position="bottom",
-                 legend.title = element_blank(),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20/1.2, width = 40/1.2, dpi = 300
-)
-
-# using Nutrient without TN and TPand oxygen
-
-river_SM_NU_3 <- river_SM[,c(5, 8, 25:27,29, 42)] 
-river_SM_NU_3$Distance[river_SM_NU_3$River == "Cuenca"] <- river_SM_NU_3$Distance[river_SM_NU_3$River == "Cuenca"] -17.33
-river_SM_NU_3 <- river_SM_NU_3[-c(1:4,10,18),]
-river_SM_NU_3 <- river_SM_NU_3 %>% gather(key = "Nutrients", value = "Concentration", -River, -Distance)
-# river_SM$Distance <- as.factor(river_SM$Distance)
-river_SM_NU_3$`Nutrients` <- as.factor(river_SM_NU_3$`Nutrients`)
-river_SM_NU_3 <- river_SM_NU_3 %>% 
-    group_by(River, `Nutrients`, Distance) %>% 
-    summarise(Concentration2 = sum(Concentration)) 
-# river_SM_NU_3$Distance <- as.numeric(river_SM_NU_3$Distance)
-
-ggsave("River_NU_SM_3.tiff", river_SM_NU_3 %>% ggplot() +
-           geom_area(aes(y=Concentration2, x=Distance, fill = `Nutrients`),
-                     colour="black", size=.2, alpha=.8)+
-           theme_bw() +
-           xlab("Distance from the source (km)") +
-           ylab(bquote("Concentration ("*mg.L^{-1}*")"))+
-           facet_grid(.~River, scales = "free") +
-           scale_fill_manual(labels =c(bquote("DO") , bquote("NH"[4]), bquote("NO"[2]), bquote("NO"[3]), 
-                                       bquote("PO"[4])),
-                             values=c("#666666", "#E7298A", "#66A61E", "#E6AB02", "#A6761D"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 11),
-                 # axis.ticks.x = element_blank(),
-                 # axis.title.x = element_blank(),
-                 # legend.position="bottom",
-                 legend.title = element_blank(),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20/1.2, width = 40/1.2, dpi = 300
-)
-
-# using OM 
-
-river_SM_OM <- river_SM[,c(5, 22,23, 42)] 
-river_SM_OM <- river_SM_OM %>% gather(key = "Organic Matter", value = "Concentration", -River, -Distance)
-# river_SM$Distance <- as.factor(river_SM$Distance)
-river_SM_OM$`Organic Matter` <- as.factor(river_SM_OM$`Organic Matter`)
-river_SM_OM <- river_SM_OM %>% 
-    group_by(River, `Organic Matter`, Distance) %>% 
-    summarise(Concentration2 = sum(Concentration)) 
-# river_SM_OM$Distance <- as.numeric(river_SM_OM$Distance)
-
-ggsave("River_OM_SM.tiff", river_SM_OM %>% ggplot() +
-           geom_area(aes(y=Concentration2, x=Distance, fill = `Organic Matter`),
-                     colour="black", size=.2, alpha=.8)+
-           theme_bw() +
-           xlab("Distance from the source (km)") +
-           ylab(bquote("Concentration ("~mg.L^{-1}~")"))+
-           facet_grid(.~River, scales = "free") +
-           scale_fill_manual(labels =c("BOD", "COD"),
-                             values=c("#1B9E77", "#D95F02"))+
-           theme(text=element_text(size=14),
-                 strip.text.x = element_text(size=14),
-                 axis.text.x = element_text(size = 11),
-                 # axis.ticks.x = element_blank(),
-                 # axis.title.x = element_blank(),
-                 # legend.position="bottom",
-                 legend.title = element_text(size=14),
-                 legend.text = element_text(size = 12),
-                 legend.spacing.x = unit(0.5, 'cm')),
-       units = 'cm', height = 20/1.2, width = 40/1.2, dpi = 300
-)
-
