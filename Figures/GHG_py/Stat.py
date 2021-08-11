@@ -28,7 +28,7 @@ data.info()
 data['River'] = data['River'].astype('category')
 data['Shading'] = data['Shading'].astype('category')
 data['Pool_class'] = data['Pool_class'].astype('category')
-
+data['Flow_variation'] = data['Flow_variation'].astype('category')
 len(data['River'].unique()
     
 data >> select('River', 'T_w') >> filter_by(X.T_w < 20, X.River == 'Cuenca')
