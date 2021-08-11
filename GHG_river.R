@@ -28,6 +28,8 @@ library(mice)
 library(VIM)
 library(ggmosaic)
 library(esquisse)
+library(scales) # Make color gradient scales
+
 
 # data analysis - machine learning - statistics
 
@@ -124,6 +126,11 @@ Ca.n2o   = 55.5 * (Cg.n2o/H.n2o) * 44 * 10^3  # mg N2O/L H2O
 Cah.n2o  = (V.headspace/V.aq * Cg.n2o * (44/22.4) * (273.15/(T + 273.15))*10^3) # mg N2O/L H2O
 
 n2o.aq   = (Ca.n2o + Cah.n2o) * 10^3 # ug N2O/L H2O
+n2o.aq
+
+n2o.ppm = n2o.aq*24.45/(44.013)
+n2o.ppm
+
 river$Dis_N2O_cor <- n2o.aq
 
 # Henry coefficients for ch4
@@ -147,6 +154,9 @@ Cah.ch4  = (V.headspace/V.aq * Cg.ch4 * (16/22.4) * (273.15/(T + 273.15))*10^3) 
 ch4.aq   = (Ca.ch4 + Cah.ch4)  * 10^3 # ug ch4/L H2O
 ch4.aq
 
+ch4.ppm = ch4.aq*24.45/(16.04)
+ch4.ppm
+
 river$Dis_CH4_cor <- ch4.aq
 
 # Henry coefficients for co2
@@ -165,21 +175,16 @@ Cg.co2   = river$Dis_CO2_1 * 10^-6 * pressure   # vol atm co2 / vol sample; Cg
 Ca.co2   = 55.5 * (Cg.co2/H.co2) * 44 * 10^3  # mg co2/L H2O
 Cah.co2  = (V.headspace/V.aq * Cg.co2 * (44/22.4) * (273.15/(T + 273.15))*10^3) # mg co2/L H2O
 
-co2.aq   = (Ca.co2 + Cah.co2)*10^3  # mg co2/L H2O
+co2.aq   = (Ca.co2 + Cah.co2)*10^3  # ug co2/L H2O
 co2.aq
 
-river$Dis_CO2_cor <- co2.aq
+co2.ppm    = 581.68 * co2.aq/1000 - 5.2707; co2.ppm # FINAL dissolved CO2 concentration in ppm.   
+co2.ppm
 
-river_mis <- river[0,]
 
-for (i in 1:ncol(river_mis)){
-    if (is.factor(river_mis[,i])){
-        river_mis[,i] <- as.numeric(as.character(river_mis[,i]))
-    }
-    river_mis[1,i] <- sum(is.na(river[,i]))
-}
+river$Dis_CO2_cor <- co2.ppm
 
-river <- river %>% select(-c(38:43))
+# river <- river %>% select(-c(38:43))
 write_csv(river, "river_DC.csv")
 #### Boxplot of all countinuous variables regarding rivers #### 
 
@@ -1125,10 +1130,10 @@ ggsave("LS_final_no_CO2_equi_no_bank.tiff", river_LS %>%
                values = c("blue","green","yellow", "orange","red"), name = "Land use category")+
            theme(text=element_text(size=14),
                  strip.text.x = element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="right",
+                 # axis.text.x = element_blank(),
+                 # axis.ticks.x = element_blank(),
+                 # axis.title.x = element_blank(),
+                 legend.position="none",
                  legend.title = element_text(size = 14),
                  legend.text = element_text(size = 12),
                  legend.spacing.x = unit(0.5, 'cm')),
@@ -1189,64 +1194,6 @@ ggsave("Per_river_total_emissions.tiff", river_flux_stacked %>% ggplot() +
                  legend.spacing.x = unit(0.5, 'cm')),
        units = 'cm', height = 20, width = 20, dpi = 300
 )
-#### Add COD/N ratio ####
-
-river_WQI$COD_N_ratio <- river_WQI$COD/river_WQI$TN
-river_v2 <- river_WQI[,-c(35:43,45,46,48:50)]
-# lapply(river_v2[,c(6:14,20:34,37:40)], histogram)
-# set.seed(123)
-# split <- sample.split(river_v2$F_CO2, SplitRatio = 2/3)
-# training_set <- subset(dataset, split == TRUE)
-# test_set <- subset(dataset, split == FALSE)
-
-wqi_std <- tribble(
-    ~Prati_WQI_1, ~WQI,
-    "Good Quality", '1',
-    "Acceptable Quality", '2',
-    "Polluted", '3',
-    "Heavily Polluted", '4',
-    "Very Heavily Polluted", '5'
-)
-
-river_v2 <- river_v2 %>% right_join(wqi_std) %>% select(-Prati_WQI_1)
-
-river_v2_CO2 <- river_v2 %>% select("DO", "NH4", "NO2", "Velocity", "Depth", "T_w", "LB", "RB", "WQI", "F_CO2_mg") %>% 
-    pivot_longer(cols = -c("DO", "NH4", "NO2", "Velocity", "Depth", "T_w", "WQI", "F_CO2_mg"), names_to = "Bank", values_to = "Land use") %>% 
-    select(-"Bank")
-
-land_std <- tribble(
-    ~`Land use`,~Land,
-    "Forest", "1",
-    "River", "1",
-    "Factory", "2",
-    "Mining", "2",
-    "Arable", "3",
-    "Orchard", "3",
-    "Road", "4",
-    "Construction", "5",
-    "Resident", "5",
-    "Urban", "5"
-)
-
-river_v2_CO2 <- river_v2_CO2 %>% right_join(land_std) %>% select(-`Land use`)
-colnames(river_v2_CO2)[c(6,8)] <- c("Tw", "CO2")
-write.csv(river_v2_CO2, "river_fuzzy_CO2.csv")
-
-river_v2_CH4 <- river_v2 %>% select("DO","COD_N_ratio", "COD", "Velocity", "Depth", "T_w", "LB", "RB", "WQI", "F_CH4_mg") %>% 
-    pivot_longer(cols = -c("DO", "COD_N_ratio","COD", "Velocity", "Depth", "T_w", "WQI", "F_CH4_mg"), names_to = "Bank", values_to = "Land use") %>% 
-    select(-"Bank")
-river_v2_CH4 <- river_v2_CH4 %>% right_join(land_std) %>% select(-`Land use`)
-colnames(river_v2_CH4)[c(2,4, 6,8)] <- c("CODN", "Vel", "Tw", "CH4")
-river_v2_CH4$CH4 <- river_v2_CH4$CH4/28
-write.csv(river_v2_CH4, "river_fuzzy_CH4.csv")
-
-river_v2_N2O <- river_v2 %>% select("DO", "NH4", "NO2", "COD_N_ratio", "pH", "T_w", "LB", "RB", "WQI", "F_N2O_mg") %>% 
-    pivot_longer(cols = -c("DO", "NH4", "NO2", "COD_N_ratio", "pH", "T_w", "WQI", "F_N2O_mg"), names_to = "Bank", values_to = "Land use") %>% 
-    select(-"Bank")
-river_v2_N2O <- river_v2_N2O %>% right_join(land_std) %>% select(-`Land use`)
-colnames(river_v2_N2O)[c(4,6,8)] <- c("CODN", "Tw", "N2O")
-river_v2_N2O$N2O <- river_v2_N2O$N2O/265
-write.csv(river_v2_N2O, "river_fuzzy_N2O.csv")
 #### Correlation variables including fluxes ####
 
 
@@ -1266,38 +1213,70 @@ dev.off()
 #### Correct_dissolved gas concentrations per river ####
 
 river_DG <- river %>% select(c(5,46:48))
+river_DG$Dis_CO2_cor <- river_DG$Dis_CO2_cor/1000
+
 river_DG <- river_DG %>% pivot_longer(cols = -River, names_to = "GHGs", values_to = "Concentrations")
 river_DG$GHGs <- as.factor(river_DG$GHGs)
-river_DG$GHGs <- factor(river_DG$GHGs, levels = c("Dis_CO2_cor", "Dis_CH4_cor", "Dis_N2O_cor"),   labels = c(expression("CO"["2"]), expression("CH"["4"]), 
-                                                                                                             expression("N"["2"]*"O")))
+river_DG$GHGs <- factor(river_DG$GHGs, levels = c("Dis_CO2_cor", "Dis_CH4_cor", "Dis_N2O_cor"),   
+                        labels = c(expression("CO"["2"]*" (matm)"), expression("CH"["4"]*" ("*mu*"g "*L^-1*")"), 
+                                   expression("N"["2"]*"O"*" ("*mu*"g "*L^-1*")")))
+
 river_DG$River <- factor(river_DG$River,
                                 levels = c("Machangara", "Yanuncay", "Cuenca", "Tarqui", "Tomebamba"))
+
 ggsave("Dissolved GHG conc_river.jpeg",
-river_DG %>% 
-    ggplot(aes(x = River, y = Concentrations, fill = River)) +
-    geom_boxplot() +
-    stat_summary(fun=mean, geom="point", shape=20, size=5, color="red", fill="red") +
-    theme_bw()+
-    ylab(bquote("Dissolved concentrations ("*mu*"g "*L^-1*")")) +
-    facet_wrap(.~ GHGs, scales = "free", labeller = label_parsed) +
-    scale_fill_brewer(palette = "Paired", name = "Tributaries")+
-    theme(text=element_text(size=14),
-          strip.text.x = element_text(size=14),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          legend.position="right",
-          legend.title = element_text(size = 14),
-          legend.text = element_text(size = 12),
-          legend.spacing.x = unit(0.5, 'cm'))
+    river_DG %>% 
+        ggplot(aes(x = River, y = Concentrations, fill = River)) +
+        geom_boxplot() +
+        stat_summary(fun=mean, geom="point", shape=15, size=3, color="black", fill="black") +
+        theme_bw()+
+        ylab(bquote("Dissolved concentration")) +
+        facet_wrap(.~ GHGs, scales = "free", labeller = label_parsed) +
+        scale_fill_brewer(palette = "Paired", name = "Tributaries")+
+        theme(text=element_text(size=14),
+              strip.text.x = element_text(size=14),
+              axis.text.x = element_blank(),
+              axis.ticks.x = element_blank(),
+              axis.title.x = element_blank(),
+              legend.position="right",
+              legend.title = element_text(size = 14),
+              legend.text = element_text(size = 12),
+              legend.spacing.x = unit(0.5, 'cm'))
 , units = 'cm', height = 15, width = 30, dpi = 300)
+
+# sum up the GHG dissolved concentrations from the rivers
+
+river_DG_sum <-  merge(aggregate(data = river_DG, Concentrations ~  GHGs + River, FUN =mean), 
+                              aggregate(data = river_DG, Concentrations ~  GHGs + River, FUN =std.error), 
+                              by = c("GHGs", "River"))
+colnames(river_DG_sum)[3:4] <- c("Mean", "SE")
+
+
+# convert to CO2 equivalent
+
+river_DG_CO <- river_DG 
+river_DG_CO[river_DG_CO$GHGs == '"CH"["4"]',] <- river_DG_CO %>% filter(GHGs == '"CH"["4"]') %>% mutate(Concentrations = Concentrations*28)
+river_DG_CO <- river_DG_CO %>% arrange(GHGs)
+river_DG_CO$Concentrations[73:108] <- river_DG_CO$Concentrations[73:108]*265
+
+river_DG_CO_sum <-  merge(aggregate(data = river_DG_CO, Concentrations ~  GHGs + River, FUN =mean), 
+                       aggregate(data = river_DG_CO, Concentrations ~  GHGs + River, FUN =std.error), 
+                       by = c("GHGs", "River"))
+colnames(river_DG_CO_sum)[3:4] <- c("Mean", "SE")
+
+# sum of CO2 equivalent
+
+river_DG_CO_sum2 <- merge(aggregate(data = river_DG_CO, Concentrations ~   River, FUN =mean), 
+                       aggregate(data = river_DG_CO, Concentrations ~   River, FUN =std.error), 
+                       by = c("River"))
+colnames(river_DG_CO_sum2)[2:3] <- c("Mean", "SE")
 
 #### Correct_dissolved gas concentraitons per WQI ####
 
-
+river <- river %>% arrange(No)
 river_WQI_DG <- river_WQI[, c(5, 44, 47)] 
-
 river_WQI_DG <- bind_cols(river_WQI_DG, river[,c(46:48)])
+river_WQI_DG$Dis_CO2_cor <- river_WQI_DG$Dis_CO2_cor/1000
 
 river_WQI_DG <- river_WQI_DG %>% pivot_longer(c(-River,-Prati_WQI_1, -`OWQI-2`), names_to = "GHGs", values_to = "Concentration")
 
@@ -1319,8 +1298,8 @@ river_WQI_DG <- river_WQI_DG %>%
     gather(key = "WQI", value = "Water Quality", - `Fluxes`, - Concentration)
 
 river_WQI_DG$Fluxes <- factor(river_WQI_DG$Fluxes, levels = c("Dis_CO2_cor", "Dis_CH4_cor", "Dis_N2O_cor"), 
-                              labels = c(expression("CO"["2"]), expression("CH"["4"]), 
-                                         expression("N"["2"]*"O")))
+                              labels = c(expression("CO"["2"]*""), expression("CH"["4"]*""), 
+                                         expression("N"["2"]*"O"*"")))
 river_WQI_DG$`Water Quality` <- as.factor(river_WQI_DG$`Water Quality`)
 river_WQI_DG$`Water Quality` <- factor(river_WQI_DG$`Water Quality`, 
                                        levels = c("Good Quality", "Acceptable Quality",
@@ -1333,10 +1312,10 @@ ggsave("Dissolved GHG conc_WQI.jpeg",
                                     levels=  c("Good Quality", "Acceptable Quality",
                                                "Polluted", "Heavily Polluted", "Very Heavily Polluted")))) +
            geom_boxplot() +
-           stat_summary(fun =mean, geom="point", shape=20, size=5, color="blue", fill="blue") +
+           stat_summary(fun =mean, geom="point", shape=15, size=2.5, color="black", fill="black") +
            theme_bw() +
            labs(fill = "Prati Index") +
-           ylab(bquote("Dissolved concentrations ("*mu*"g "*L^-1*")")) +
+           ylab(bquote("Dissolved concentration (ppm)")) +
            facet_wrap(WQI~Fluxes, scales = "free"
                       , labeller = labeller(Fluxes = label_parsed)) +
            scale_fill_manual(values = c("blue","green","yellow","orange","red"), name = "Prati/Oregon Index", 
@@ -1352,14 +1331,192 @@ ggsave("Dissolved GHG conc_WQI.jpeg",
                  legend.title = element_text(size = 14),
                  legend.text = element_text(size = 12),
                  legend.spacing.x = unit(0.5, 'cm'))
-       , units = 'cm', height = 20, width = 30, dpi = 300)
+       , units = 'cm', height = 25, width = 30, dpi = 300)
+
+# Kruskal Wallis test
+
+river_dun_WQI <- river_WQI_DG
+river_dun_WQI$Fluxes <- factor(river_dun_WQI$Fluxes, labels = c("CO2", "CH4", "N2O"))
+
+# dun_f <- function(x, column, column2){
+#     # x[,column] <- as.factor(x[,column])
+#     # x[,column2] <- as.factor(x[,column2])
+#     z <- as.data.frame(dunn.test(x[,column], x[,column2], method=c('bonferroni'))[4:5])
+#     return(z)
+# } 
+# dun_f(river_dun_WQI %>% filter(WQI == "Prati Index"), "Concentration", "Water Quality")
+
+river_dun_CO2 <- as.data.frame(dunn.test(river_dun_WQI$Concentration[river_dun_WQI$Fluxes == "CO2" & river_dun_WQI$WQI == "Prati Index"], river_dun_WQI$`Water Quality`[river_dun_WQI$Fluxes == "CO2" & river_dun_WQI$WQI == "Prati Index"], method=c('bonferroni'))[4:5])
+river_dun_CH4 <- as.data.frame(dunn.test(river_dun_WQI$Concentration[river_dun_WQI$Fluxes == "CH4" & river_dun_WQI$WQI == "Prati Index"], river_dun_WQI$`Water Quality`[river_dun_WQI$Fluxes == "CH4" & river_dun_WQI$WQI == "Prati Index"], method=c('bonferroni'))[4:5])
+river_dun_N2O <- as.data.frame(dunn.test(river_dun_WQI$Concentration[river_dun_WQI$Fluxes == "N2O" & river_dun_WQI$WQI == "Prati Index"], river_dun_WQI$`Water Quality`[river_dun_WQI$Fluxes == "N2O" & river_dun_WQI$WQI == "Prati Index"], method=c('bonferroni'))[4:5])
+river_dun_CO2_2 <- as.data.frame(dunn.test(river_dun_WQI$Concentration[river_dun_WQI$Fluxes == "CO2" & river_dun_WQI$WQI == "Oregon Index"], river_dun_WQI$`Water Quality`[river_dun_WQI$Fluxes == "CO2" & river_dun_WQI$WQI == "Oregon Index"], method=c('bonferroni'))[4:5])
+river_dun_CH4_2 <- as.data.frame(dunn.test(river_dun_WQI$Concentration[river_dun_WQI$Fluxes == "CH4" & river_dun_WQI$WQI == "Oregon Index"], river_dun_WQI$`Water Quality`[river_dun_WQI$Fluxes == "CH4" & river_dun_WQI$WQI == "Oregon Index"], method=c('bonferroni'))[4:5])
+river_dun_N2O_2 <- as.data.frame(dunn.test(river_dun_WQI$Concentration[river_dun_WQI$Fluxes == "N2O" & river_dun_WQI$WQI == "Oregon Index"], river_dun_WQI$`Water Quality`[river_dun_WQI$Fluxes == "N2O" & river_dun_WQI$WQI == "Oregon Index"], method=c('bonferroni'))[4:5])
+
+river_dun_D <- bind_rows(river_dun_CO2, river_dun_CH4, river_dun_N2O, .id = "Dissolved gases")
+river_dun_D$`Dissolved gases` <- factor(river_dun_D$`Dissolved gases`)
+levels(river_dun_D$`Dissolved gases`) <- c("Dissolved CO2", "Dissolved CH4", "Dissolved N2O")
+
+river_dun_D_2 <- bind_rows(river_dun_CO2_2, river_dun_CH4_2, river_dun_N2O_2, .id = "Dissolved gases")
+river_dun_D_2$`Dissolved gases` <- factor(river_dun_D_2$`Dissolved gases`)
+levels(river_dun_D_2$`Dissolved gases`) <- c("Dissolved CO2", "Dissolved CH4", "Dissolved N2O")
+
+river_dun <-bind_rows(river_dun_D, river_dun_D_2, .id = "WQ Index")
+
+write_csv(river_dun, "river_Krukal Wallis.csv")
+
+#only the significant ones
+
+river_dun_sig <- river_dun %>% filter(P.adjusted <= 0.05)
+write_csv(river_dun_sig, "river_Krukal Wallis_sig.csv")
+
+# sum up WQI
+
+# no co2 equivalent
+
+river_WQI_DG_noCO2 <- river_WQI_DG
+river_WQI_DG_noCO2_sum_Prati <- river_WQI_DG_noCO2 %>% filter(WQI == "Prati Index")
+river_WQI_DG_noCO2_sum_Prati <- merge(aggregate(data = river_WQI_DG_noCO2_sum_Prati, Concentration ~ `Water Quality` + Fluxes, FUN =mean), 
+                              aggregate(data = river_WQI_DG_noCO2_sum_Prati, Concentration ~ `Water Quality` + Fluxes, FUN =std.error), 
+                              by = c("Water Quality", "Fluxes"))
+
+river_WQI_DG_noCO2_sum_Oregon <- river_WQI_DG_noCO2 %>% filter(WQI == "Oregon Index")
+river_WQI_DG_noCO2_sum_Oregon <- merge(aggregate(data = river_WQI_DG_noCO2_sum_Oregon, Concentration ~ `Water Quality` + Fluxes, FUN =mean), 
+                                      aggregate(data = river_WQI_DG_noCO2_sum_Oregon, Concentration ~ `Water Quality` + Fluxes, FUN =std.error), 
+                                      by = c("Water Quality", "Fluxes"))
+
+river_WQI_DG_Prati <- river_WQI_DG %>% filter(WQI == "Prati Index")
+river_WQI_DG_Oregon  <- river_WQI_DG %>% filter(WQI == "Oregon Index")
+summary(as.factor(river_WQI_DG_Prati$`Water Quality`))/3
+summary(as.factor(river_WQI_DG_Oregon$`Water Quality`))/3
+
+# co2 equivalent
+
+
+river_WQI_DG[river_WQI_DG$Fluxes == '"CH"["4"]',] <- river_WQI_DG %>% filter(Fluxes == '"CH"["4"]') %>% mutate(Concentration = Concentration*28)
+river_WQI_DG <- river_WQI_DG %>% arrange(Fluxes)
+river_WQI_DG$Concentration[145:216] <- river_WQI_DG$Concentration[145:216]*265
+
+river_WQI_DG[river_WQI_DG$Fluxes != 'N"["2"] \\* "O"',] <- river_WQI_DG %>% filter(Fluxes == 'N"["2"] \\* "O"') %>% mutate(Concentration = Concentration*28)
+river2_WQI_sum_Prati <- river_WQI_DG %>% filter(WQI == "Prati Index")
+river2_WQI_sum_Prati <- merge(aggregate(data = river2_WQI_sum_Prati, Concentration ~ `Water Quality` + Fluxes, FUN =mean), 
+                             aggregate(data = river2_WQI_sum_Prati, Concentration ~ `Water Quality` + Fluxes, FUN =std.error), 
+                             by = c("Water Quality", "Fluxes"))
+
+river2_WQI_sum_Prati_CO2 <- river_WQI_DG %>% filter(WQI == "Prati Index")
+river2_WQI_sum_Prati_CO2 <- merge(aggregate(data = river2_WQI_sum_Prati_CO2, Concentration ~ `Water Quality`, FUN =mean), 
+                              aggregate(data = river2_WQI_sum_Prati_CO2, Concentration ~ `Water Quality`, FUN =std.error), 
+                              by = c("Water Quality"))
+
+river2_WQI_sum_Oregon <- river_WQI_DG %>% filter(WQI == "Oregon Index")
+river2_WQI_sum_Oregon$`Water Quality` <- as.character(river2_WQI_sum_Oregon$`Water Quality`)
+for (i in 1:nrow(river2_WQI_sum_Oregon)){
+    for (j in 1:length(new_Ore)){
+        river2_WQI_sum_Oregon$`Water Quality`[i] <- str_replace_all(river2_WQI_sum_Oregon$`Water Quality`[i], new_Ore[j], old_Ore[j])
+    }
+}
+river2_WQI_sum_Oregon$`Water Quality` <- as.factor(river2_WQI_sum_Oregon$`Water Quality`)
+river2_WQI_sum_Oregon <- merge(aggregate(data = river2_WQI_sum_Oregon, Concentration ~ `Water Quality` + Fluxes, FUN =mean), 
+                              aggregate(data = river2_WQI_sum_Oregon, Concentration ~ `Water Quality` + Fluxes, FUN =std.error), 
+                              by = c("Water Quality", "Fluxes")) # Fair and Good of Oregon contain only one variable --> No SEM
+
+
+# sum up WQI 11.06.2020 CO2 equivalent
+
+river2_WQI_sum_Prati_CO2 <- river_WQI_DG %>% filter(WQI == "Prati Index")
+river2_WQI_sum_Prati_CO2 <- merge(aggregate(data = river2_WQI_sum_Prati_CO2, Concentration ~ `Water Quality` + Fluxes, FUN =mean), 
+                                 aggregate(data = river2_WQI_sum_Prati_CO2, Concentration ~ `Water Quality` + Fluxes, FUN =std.error), 
+                                 by = c("Water Quality", "Fluxes"))
+river2_WQI_sum_Prati_CO2 <- merge(aggregate(data = river2_WQI_sum_Prati_CO2, Concentration.x ~ `Water Quality`, FUN = sum),
+                                 aggregate(data = river2_WQI_sum_Prati_CO2, Concentration.y ~ `Water Quality`, FUN = sum),
+                                 by = c("Water Quality"))
+river2_WQI_sum_Prati_CO2[,2:3] <- river2_WQI_sum_Prati_CO2[,2:3]/1000
+
+river2_WQI_sum_Oregon_CO2 <- river_WQI_DG %>% filter(WQI == "Oregon Index")
+river2_WQI_sum_Oregon_CO2$`Water Quality` <- as.character(river2_WQI_sum_Oregon_CO2$`Water Quality`)
+for (i in 1:nrow(river2_WQI_sum_Oregon_CO2)){
+    for (j in 1:length(new_Ore)){
+        river2_WQI_sum_Oregon_CO2$`Water Quality`[i] <- str_replace_all(river2_WQI_sum_Oregon_CO2$`Water Quality`[i], new_Ore[j], old_Ore[j])
+    }
+}
+river2_WQI_sum_Oregon_CO2$`Water Quality` <- as.factor(river2_WQI_sum_Oregon_CO2$`Water Quality`)
+river2_WQI_sum_Oregon_CO2 <- merge(aggregate(data = river2_WQI_sum_Oregon_CO2, Concentration ~ `Water Quality` + Fluxes, FUN =mean), 
+                                  aggregate(data = river2_WQI_sum_Oregon_CO2, Concentration ~ `Water Quality` + Fluxes, FUN =std.error), 
+                                  by = c("Water Quality", "Fluxes")) # Fair and Good of Oregon_CO2 contain only one variable --> No SEM
+
+river2_WQI_sum_Oregon_CO2 <- merge(aggregate(data = river2_WQI_sum_Oregon_CO2, Concentration.x ~ `Water Quality`, FUN =sum), 
+                                  aggregate(data = river2_WQI_sum_Oregon_CO2, Concentration.y ~ `Water Quality`, FUN =sum, na.rm=TRUE, na.action=NULL), 
+                                  by = c("Water Quality"))
+river2_WQI_sum_Oregon_CO2[,2:3] <- river2_WQI_sum_Oregon_CO2[,2:3]/1000
+
+# make new graph with WQ category in the axis label
+
+
+river_WQI_DG <- river_WQI[, c(5, 44, 47)] 
+
+river_WQI_DG <- bind_cols(river_WQI_DG, river[,c(46:48)])
+river_WQI_DG$Dis_CO2_cor <- river_WQI_DG$Dis_CO2_cor/1000
+
+river_WQI_DG <- river_WQI_DG %>% pivot_longer(c(-River,-Prati_WQI_1, -`OWQI-2`), names_to = "GHGs", values_to = "Concentration")
+
+
+river_WQI_DG$GHGs <- as_factor(river_WQI_DG$GHGs)
+river_WQI_DG <- river_WQI_DG[,-1]
+
+colnames(river_WQI_DG) <- c("Prati Index", "Oregon Index", "Fluxes", "Concentration")
+
+river_WQI_DG <- river_WQI_DG %>%
+    gather(key = "WQI", value = "Water Quality", - `Fluxes`, - Concentration)
+
+river_WQI_DG$Fluxes <- factor(river_WQI_DG$Fluxes, levels = c("Dis_CO2_cor", "Dis_CH4_cor", "Dis_N2O_cor"), 
+                              labels = c(expression("CO"["2"]*" (matm)"), expression("CH"["4"]*" ("*mu*"g "*L^-1*")"), 
+                                         expression("N"["2"]*"O"*" ("*mu*"g "*L^-1*")")))
+river_WQI_DG$`Water Quality` <- as.factor(river_WQI_DG$`Water Quality`)
+river_WQI_DG$`Water Quality` <- factor(river_WQI_DG$`Water Quality`, 
+                                       levels = c("Good Quality", "Acceptable Quality",
+                                                  "Polluted", "Heavily Polluted", "Very Heavily Polluted", "Good", "Fair", "Poor", "Very Poor"),
+                                       labels = c(" Good", "Acceptable",
+                                                  "Polluted", "Heavily Polluted", "Very Heavily Polluted", "Good", "Fair", "Poor", "Very Poor"))
+
+ggsave("Dissolved GHG conc_WQI_2.jpeg", 
+       river_WQI_DG %>% 
+           ggplot(aes(y=Concentration, x=`Water Quality`,
+                      fill = factor(`Water Quality`
+                                    # , 
+                                    # levels=  c("Good Quality", "Acceptable Quality",
+                                    #            "Polluted", "Heavily Polluted", "Very Heavily Polluted")
+                      ))) +
+           geom_boxplot() +
+           stat_summary(fun =mean, geom="point", shape=15, size=3, color="black", fill="black") +
+           theme_bw() +
+           labs(fill = "Prati Index") +
+           ylab(bquote("Dissolved concentration")) +
+           facet_wrap(WQI~Fluxes, scales = "free"
+                      , labeller = labeller(Fluxes = label_parsed)) +
+           scale_fill_manual(values = c("blue","green","yellow","orange","red"
+                                        , "green", "yellow", "orange", "red"
+                                       ), name = "Prati/Oregon Index", 
+                                       labels = c("Good Quality/Excellent", "Acceptable Quality/Good",
+                                                  "Polluted/Fair", "Heavily Polluted/Poor", "Very Heavily Polluted/Very Poor")) +
+           # scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]*"O")))+
+           theme(text=element_text(size=14),
+                 strip.text.x =element_text(size=14),
+                 axis.text.x = element_text(size=13, angle = 45, hjust = 1),
+                 # axis.ticks.x = element_blank(),
+                 axis.title.x = element_blank(),
+                 legend.position = "none",
+                 legend.title = element_text(size = 14),
+                 legend.text = element_text(size = 12),
+                 legend.spacing.x = unit(0.5, 'cm'))
+       , units = 'cm', height = 25, width = 25, dpi = 300)
+
 
 #### Correct_dissolved gas concentrations per land use ####
 
 river_LS_DG <- river_WQI[, c(15, 16)] 
 river_LS_DG <- bind_cols(river_LS_DG, river[,c(46:48)])
 
-
+river_LS_DG$Dis_CO2_cor <- river_LS_DG$Dis_CO2_cor/1000
 river_LS_DG <- river_LS_DG %>% pivot_longer(c(-LB, -RB), names_to = "Fluxes", values_to = "Concentration") %>% 
     pivot_longer(c(- `Fluxes`, - Concentration), names_to = "Bank", values_to = "Land use")
 river_LS_DG$Bank <- str_replace_all(river_LS_DG$Bank, "LB", "Left Bank")
@@ -1377,37 +1534,204 @@ river_LS_DG$Fluxes <- as.factor(river_LS_DG$Fluxes)
 river_LS_DG$Fluxes <- relevel(river_LS_DG$Fluxes,"Dis_CO2_cor")
 
 river_LS_DG$Fluxes <- factor(river_LS_DG$Fluxes, 
-                          labels = c(expression("CO"["2"]), expression("CH"["4"]), 
-                                     expression("N"["2"]*"O")))
+                             labels = c(expression("CO"["2"]*" (matm)"), expression("CH"["4"]*" ("*mu*"g "*L^-1*")"), 
+                                        expression("N"["2"]*"O"*" ("*mu*"g "*L^-1*")")))
 river_LS_DG$`Land use` <- as.factor(river_LS_DG$`Land use`)
 
 river_LS_DG$`Land use` <- factor(river_LS$`Land use`, 
                               levels = c("Nature", "Industry", "Agriculture", "Road", "Urban"))
+cc_model <- seq_gradient_pal("blue", "red", "Lab")(seq(0,1,length.out=30))
 
 ggsave("Dissolved GHG conc_LS.jpeg",
        river_LS_DG %>% 
            ggplot(aes(x = `Land use`, y = Concentration, fill = `Land use`)) +
            geom_boxplot() +
-           stat_summary(fun=mean, geom="point", shape=20, size=5, color="blue", fill="blue") +
+           stat_summary(fun=mean, geom="point", shape=15, size=3, color="black", fill="black") +
            theme_bw() +
-           ylab(bquote("Dissolved concentrations ("*mu*"g "*L^-1*")")) +
+           ylab(bquote("Dissolved concentration")) +
            facet_wrap(.~Fluxes, scales = "free"
                       , labeller = labeller(Fluxes = label_parsed)) +
-           scale_fill_manual(
-               values = c("blue","green","yellow", "orange","red"), name = "Land use category")+
+           scale_fill_manual(values=cc_model[rev(c(30,23,18,13,8,3,1))], name = "Land use category") + 
+           # scale_fill_brewer(palette = "Paired", name = "Tributaries")+
+           # scale_fill_manual(
+           #     values = c("blue","green","yellow", "orange","red"), name = "Land use category")+
            theme(text=element_text(size=14),
                  strip.text.x = element_text(size=14),
-                 axis.text.x = element_blank(),
-                 axis.ticks.x = element_blank(),
-                 axis.title.x = element_blank(),
-                 legend.position="right",
+                 # axis.text.x = element_blank(),
+                 # axis.ticks.x = element_blank(),
+                 # axis.title.x = element_blank(),
+                 legend.position="none",
                  legend.title = element_text(size = 14),
                  legend.text = element_text(size = 12),
                  legend.spacing.x = unit(0.5, 'cm'))
        , units = 'cm', height = 15, width = 30, dpi = 300)
 
+# Kruskal Wallis test
+
+river_dun_LS <- river_LS_DG
+river_dun_LS$Fluxes <- factor(river_dun_LS$Fluxes, labels = c("CO2", "CH4", "N2O"))
+
+river_dun_CO2_LS <- as.data.frame(dunn.test(river_dun_LS$Concentration[river_dun_LS$Fluxes == "CO2"
+                                                                       # & river_dun_LS$Bank == "Right Bank"
+                                                                       ], 
+                                            river_dun_LS$`Land use`[river_dun_LS$Fluxes == "CO2" 
+                                                                    # & river_dun_LS$Bank == "Right Bank"
+                                                                    ], method=c('bonferroni'))[4:5])
+river_dun_CH4_LS <- as.data.frame(dunn.test(river_dun_LS$Concentration[river_dun_LS$Fluxes == "CH4"
+                                                                       # & river_dun_LS$Bank == "Right Bank"
+                                                                       ], 
+                                            river_dun_LS$`Land use`[river_dun_LS$Fluxes == "CH4" 
+                                                                    # & river_dun_LS$Bank == "Right Bank"
+                                                                    ], method=c('bonferroni'))[4:5])
+river_dun_N2O_LS <- as.data.frame(dunn.test(river_dun_LS$Concentration[river_dun_LS$Fluxes == "N2O"
+                                                                       # & river_dun_LS$Bank == "Right Bank"
+                                                                       ], 
+                                            river_dun_LS$`Land use`[river_dun_LS$Fluxes == "N2O" 
+                                                                    # & river_dun_LS$Bank == "Right Bank"
+                                                                    ], method=c('bonferroni'))[4:5])
 
 
 
+# no CO2 equivalent
+
+river_LS_DG_no_CO2 <- river_LS_DG
 
 
+river_LS_DG_no_CO2 <- merge(aggregate(data = river_LS_DG_no_CO2, Concentration ~ `Land use` + Fluxes, FUN =mean), 
+                            aggregate(data = river_LS_DG_no_CO2, Concentration ~ `Land use` + Fluxes, FUN =std.error), 
+                            by = c("Land use", "Fluxes"))
+
+# sum up LS CO2 equivalent
+
+
+river_LS_DG[river_LS_DG$Fluxes == '"CH"["4"]',] <- river_LS_DG %>% filter(Fluxes == '"CH"["4"]') %>% mutate(Concentration = Concentration*28)
+river_LS_DG <- river_LS_DG %>% arrange(Fluxes)
+river_LS_DG$Concentration[145:216] <- river_LS_DG$Concentration[145:216]*265
+
+river_LS_DG_v2_sum <- merge(aggregate(data = river_LS_DG, Concentration ~ `Land use` + Fluxes, FUN =mean), 
+                         aggregate(data = river_LS_DG, Concentration ~ `Land use` + Fluxes, FUN =std.error), 
+                         by = c("Land use", "Fluxes"))
+
+river_LS_DG_v2_sum <- merge(aggregate(data = river_LS_DG_v2_sum, Concentration.x ~ `Land use`, FUN =sum), 
+                         aggregate(data = river_LS_DG_v2_sum, Concentration.y ~ `Land use`, FUN =sum), 
+                         by = c("Land use"))
+
+river_LS_DG_v2_sum[,2:3] <- river_LS_DG_v2_sum[,2:3]/1000
+
+#### Extra_DO per WQI ####
+
+
+river_DO_DG <- river_WQI[, c(5, 8, 44, 47)] 
+
+river_DO_DG <- river_DO_DG[,-1]
+
+
+
+colnames(river_DO_DG)[2:3] <- c("Prati Index", "Oregon Index")
+river_DO_DG <- river_DO_DG %>% pivot_longer(cols = -DO, names_to = "WQI", values_to = "Water Quality")
+
+river_DO_DG$WQI <- as.factor(river_DO_DG$WQI)
+river_DO_DG$WQI <- factor(river_DO_DG$WQI, levels = c("Prati Index", "Oregon Index"))
+river_DO_DG$`Water Quality` <- as.factor(river_DO_DG$`Water Quality`)
+river_DO_DG$`Water Quality` <- factor(river_DO_DG$`Water Quality`, 
+                                      levels = c("Good Quality", "Acceptable Quality",
+                                                 "Polluted", "Heavily Polluted", "Very Heavily Polluted", "Good", "Fair", "Poor", "Very Poor"),
+                                      labels = c(" Good", "Acceptable",
+                                                 "Polluted", "Heavily Polluted", "Very Heavily Polluted", "Good", "Fair", "Poor", "Very Poor"))
+ggsave("Dissolved GHG conc_DO.jpeg", 
+       river_DO_DG %>% 
+           ggplot(aes(y=DO, x=`Water Quality`,
+                      fill = factor(`Water Quality`
+                                    , 
+                                    # levels=  c("Good Quality", "Acceptable Quality",
+                                    #            "Polluted", "Heavily Polluted", "Very Heavily Polluted")
+                                    ))) +
+           geom_boxplot() +
+           stat_summary(fun =mean, geom="point", shape=15, size=4, color="black", fill="black") +
+           theme_bw() +
+           labs(fill = "Prati Index") +
+           scale_y_reverse() +
+           ylab(bquote("Dissolved oxygen concentrations (mg "*L^-1*")")) +
+           facet_wrap(.~WQI, scales = "free_x") +
+           scale_fill_manual(values = c("blue","green","yellow","orange","red"
+                                        , "green", "yellow", "orange", "red"
+                                       ), name = "Prati/Oregon Index", 
+                                       labels = c("Good Quality/Excellent", "Acceptable Quality/Good",
+                                                  "Polluted/Fair", "Heavily Polluted/Poor", "Very Heavily Polluted/Very Poor")) +
+           # scale_x_discrete(labels =c(bquote("CO"[2]), bquote("CH"[4]), bquote("N"[2]*"O")))+
+           theme(text=element_text(size=14),
+                 strip.text.x =element_text(size=14),
+                 axis.text.x = element_text(size=13, angle = 45, hjust = 1),
+                 # axis.ticks.x = element_blank(),
+                 axis.title.x = element_blank(),
+                 legend.position = "none",
+                 legend.title = element_text(size = 14),
+                 legend.text = element_text(size = 12),
+                 legend.spacing.x = unit(0.5, 'cm'))
+       , units = 'cm', height = 20, width = 30, dpi = 300)
+
+#### FUZZY MODEL #######
+#### save files ####
+
+# CO2
+river <- river %>% arrange(No)
+river_WQI_fuzzy <- river_WQI[, c(1:34, 44)] 
+river_WQI_fuzzy <- bind_cols(river_WQI_fuzzy, river[,c(46:48)])
+
+
+wqi_std <- tribble(
+    ~Prati_WQI_1, ~WQI,
+    "Good Quality", '1',
+    "Acceptable Quality", '2',
+    "Polluted", '3',
+    "Heavily Polluted", '4',
+    "Very Heavily Polluted", '5'
+)
+
+river_WQI_fuzzy <- river_WQI_fuzzy %>% right_join(wqi_std) %>% select(-Prati_WQI_1)
+
+river_v2_CO2 <- river_WQI_fuzzy %>% select("DO", "NH4", "NO2", "Velocity", "Depth", "T_w", "LB", "RB", "WQI", "Dis_CO2_cor") %>% 
+    pivot_longer(cols = -c("DO", "NH4", "NO2", "Velocity", "Depth", "T_w", "WQI", "Dis_CO2_cor"), names_to = "Bank", values_to = "Land use") %>% 
+    select(-"Bank")
+
+land_std <- tribble(
+    ~`Land use`,~Land,
+    "Forest", "1",
+    "River", "1",
+    "Factory", "2",
+    "Mining", "2",
+    "Arable", "3",
+    "Orchard", "3",
+    "Road", "4",
+    "Construction", "5",
+    "Resident", "5",
+    "Urban", "5"
+)
+
+river_v2_CO2 <- river_v2_CO2 %>% right_join(land_std) %>% select(-`Land use`)
+colnames(river_v2_CO2)[c(2,3, 4, 6,8)] <- c("NH", "NO", "Vel", "Tw", "CO2")
+river_v2_CO2 <- river_v2_CO2[,c(1:7,9,8)]
+write.csv(river_v2_CO2, "river_fuzzy_CO2.csv")
+
+# CH4
+
+river_v2_CH4 <- river_WQI_fuzzy %>% select("DO", "COD", "Velocity", "Depth", "T_w", "LB", "RB", "WQI", "Dis_CH4_cor") %>% 
+    pivot_longer(cols = -c("DO", "COD", "Velocity", "Depth", "T_w", "WQI", "Dis_CH4_cor"), names_to = "Bank", values_to = "Land use") %>% 
+    select(-"Bank")
+river_v2_CH4 <- river_v2_CH4 %>% right_join(land_std) %>% select(-`Land use`)
+
+colnames(river_v2_CH4)[c(3,5, 7)] <- c("Vel", "Tw", "CH4")
+river_v2_CH4 <- river_v2_CH4[,c(1:6, 8,7)]
+write.csv(river_v2_CH4, "river_fuzzy_CH4.csv")
+
+# N2O
+
+river_v2_N2O <- river_WQI_fuzzy %>% select("DO", "NH4", "NO2", "COD", "Depth", "T_w", "LB", "RB", "WQI", "Dis_N2O_cor") %>% 
+    pivot_longer(cols = -c("DO", "NH4", "NO2", "COD", "Depth", "T_w", "WQI", "Dis_N2O_cor"), names_to = "Bank", values_to = "Land use") %>% 
+    select(-"Bank")
+river_v2_N2O <- river_v2_N2O %>% right_join(land_std) %>% select(-`Land use`)
+
+colnames(river_v2_N2O)[c(2,3,6,8)] <- c("NH", "NO", "Tw", "N2O")
+river_v2_N2O <- river_v2_N2O[,c(1:7,9,8)]
+
+write.csv(river_v2_N2O, "river_fuzzy_N2O.csv")
