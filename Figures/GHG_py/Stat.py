@@ -11,19 +11,27 @@ import warnings
 warnings.filterwarnings("ignore")
 from scipy import stats
 from matplotlib.pyplot import figure
+import dfply
+
 #### import data ####
 import os
 
 # print(os.listdir("C:/Users/htunlong/OneDrive - UGent/Research/Postdoc/Papers/GHG paper/Graph_GHG/Figures/GHG_py"))
 # os. chdir("C:/Users/htunlong/OneDrive - UGent/Research/Postdoc/Papers/GHG paper/Graph_GHG/Figures/GHG_py")
 data = pd.read_csv("River.csv")
+data >> head(5)
 data.head(5)
 data.tail(5)
 data.columns
 data.describe()
 data.info()
 data['River'] = data['River'].astype('category')
+data['Shading'] = data['Shading'].astype('category')
+data['Pool_class'] = data['Pool_class'].astype('category')
+
 len(data['River'].unique()
+    
+data >> select('River', 'T_w') >> filter_by(X.T_w < 20, X.River == 'Cuenca')
 
 # make a histogram
 
@@ -47,4 +55,6 @@ for i in data2.columns:
     sns.boxplot(x = data['River'], y = i, data = data)
     plt.savefig('boxplot_{0}.jpg'.format(i))
     plt.close()
+    
+    
     
